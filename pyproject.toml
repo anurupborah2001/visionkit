@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.11.8"
 dependencies = [
     "imageio>=2.37.3",
+    "imutils>=0.5.4",
     "mediapipe>=0.10.35",
     "mss>=10.2.0",
     "opencv-python>=4.13.0.92",
+    "pandas>=3.0.3",
     "pyautogui>=0.9.54",
+    "pytesseract>=0.3.13",
     "scikit-image>=0.26.0",
 ]
 
