@@ -22,14 +22,15 @@ Field types
 "signature"  – signature / initials box
 """
 
+import re
+from dataclasses import dataclass
+
 import cv2
 import numpy as np
-import re
-from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
 
 try:
     import pytesseract
+
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
@@ -39,23 +40,23 @@ except ImportError:
 # Internal data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ROIRegion:
     x1: int
     y1: int
     x2: int
     y2: int
-    field_type: str          # "text" | "textarea" | "checkbox" | "radio" |
-                              # "date" | "table" | "dropdown" | "signature"
+    field_type: str  # "text" | "textarea" | "checkbox" | "radio" |
+    # "date" | "table" | "dropdown" | "signature"
     label: str = ""
-    checked: Optional[bool] = None   # checkbox / radio only
+    checked: bool | None = None  # checkbox / radio only
     confidence: float = 1.0
 
     # ------------------------------------------------------------------ #
     def to_tuple(self) -> list:
         """Return the canonical output format requested by the user."""
-        return [(self.x1, self.y1), (self.x2, self.y2),
-                self.field_type, self.label]
+        return [(self.x1, self.y1), (self.x2, self.y2), self.field_type, self.label]
 
     @property
     def bbox(self):
@@ -101,6 +102,7 @@ _DROPDOWN_PATTERNS = re.compile(
 # Core detector
 # ---------------------------------------------------------------------------
 
+
 class FormROIDetector:
     """
     Detect form fields in document / form images and return ROIs in the
@@ -123,7 +125,7 @@ class FormROIDetector:
         self,
         min_area: int = 400,
         enable_ocr: bool = True,
-        morph_kernel: Tuple[int, int] = (3, 3),
+        morph_kernel: tuple[int, int] = (3, 3),
         row_tolerance: int = 18,
         circle_dp: float = 1.2,
         debug: bool = False,
@@ -153,7 +155,7 @@ class FormROIDetector:
             "debug_image": np.ndarray | None,
         }
         """
-        regions: List[ROIRegion] = []
+        regions: list[ROIRegion] = []
 
         # 1. Table detection (before general contour search)
         table_regions = self._detect_tables(image)
@@ -220,11 +222,15 @@ class FormROIDetector:
     # ------------------------------------------------------------------
     # 1. Table detection
     # ------------------------------------------------------------------
-    def _detect_tables(self, image: np.ndarray) -> List[ROIRegion]:
+    def _detect_tables(self, image: np.ndarray) -> list[ROIRegion]:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         binary = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY_INV, 15, 10,
+            gray,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY_INV,
+            15,
+            10,
         )
 
         # Horizontal lines
@@ -252,14 +258,16 @@ class FormROIDetector:
                 continue
             x, y, w, h = cv2.boundingRect(cnt)
             # Must have multiple lines to be a table
-            h_lines = cv2.countNonZero(horizontal[y:y+h, x:x+w])
-            v_lines = cv2.countNonZero(vertical[y:y+h, x:x+w])
+            h_lines = cv2.countNonZero(horizontal[y : y + h, x : x + w])
+            v_lines = cv2.countNonZero(vertical[y : y + h, x : x + w])
             if h_lines > 0 and v_lines > 0:
-                regions.append(ROIRegion(x, y, x+w, y+h, "table"))
+                regions.append(ROIRegion(x, y, x + w, y + h, "table"))
 
         return regions
 
-    def _build_table_mask(self, image: np.ndarray, table_regions: List[ROIRegion]) -> np.ndarray:
+    def _build_table_mask(
+        self, image: np.ndarray, table_regions: list[ROIRegion]
+    ) -> np.ndarray:
         mask = np.zeros(image.shape[:2], dtype=np.uint8)
         for r in table_regions:
             cv2.rectangle(mask, (r.x1, r.y1), (r.x2, r.y2), 255, -1)
@@ -270,14 +278,14 @@ class FormROIDetector:
     # ------------------------------------------------------------------
     def _detect_checkboxes(
         self, image: np.ndarray, table_mask: np.ndarray
-    ) -> List[ROIRegion]:
+    ) -> list[ROIRegion]:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-        _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-        contours, _ = cv2.findContours(
-            binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+        _, binary = cv2.threshold(
+            blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
         )
+
+        contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         regions = []
         for cnt in contours:
@@ -312,7 +320,7 @@ class FormROIDetector:
             if not (3 <= len(approx) <= 8):
                 continue
 
-            regions.append(ROIRegion(x, y, x+w, y+h, "checkbox"))
+            regions.append(ROIRegion(x, y, x + w, y + h, "checkbox"))
 
         return regions
 
@@ -321,7 +329,7 @@ class FormROIDetector:
     # ------------------------------------------------------------------
     def _detect_radio_buttons(
         self, image: np.ndarray, table_mask: np.ndarray
-    ) -> List[ROIRegion]:
+    ) -> list[ROIRegion]:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 1)
 
@@ -355,12 +363,16 @@ class FormROIDetector:
         self,
         image: np.ndarray,
         table_mask: np.ndarray,
-        existing: List[ROIRegion],
-    ) -> List[ROIRegion]:
+        existing: list[ROIRegion],
+    ) -> list[ROIRegion]:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         binary = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-            cv2.THRESH_BINARY_INV, 15, 8,
+            gray,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY_INV,
+            15,
+            8,
         )
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, self.morph_kernel)
@@ -402,8 +414,13 @@ class FormROIDetector:
     def _classify_general(
         self,
         image: np.ndarray,
-        x1: int, y1: int, x2: int, y2: int,
-        ar: float, w: int, h: int,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        ar: float,
+        w: int,
+        h: int,
     ) -> str:
         """Classify a rectangular region into a field type."""
         label_text = ""
@@ -413,9 +430,8 @@ class FormROIDetector:
             label_text = self._ocr_text(crop)
 
         # Dropdown: wide, short, with a dropdown arrow character
-        if ar > 3 and h < 60:
-            if _DROPDOWN_PATTERNS.search(label_text):
-                return "dropdown"
+        if ar > 3 and h < 60 and _DROPDOWN_PATTERNS.search(label_text):
+            return "dropdown"
 
         # Date field: label contains date keywords or has slashes drawn inside
         if _DATE_PATTERNS.search(label_text):
@@ -440,14 +456,20 @@ class FormROIDetector:
         return "text"
 
     def _has_internal_dividers(
-        self, image: np.ndarray,
-        x1: int, y1: int, x2: int, y2: int,
+        self,
+        image: np.ndarray,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
     ) -> bool:
         """Check whether a box contains internal vertical dividers (date parts)."""
         crop = image[y1:y2, x1:x2]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         _, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
-        v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(1, crop.shape[0] // 2)))
+        v_kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (1, max(1, crop.shape[0] // 2))
+        )
         vertical = cv2.morphologyEx(binary, cv2.MORPH_OPEN, v_kernel)
         return cv2.countNonZero(vertical) > 10
 
@@ -469,8 +491,8 @@ class FormROIDetector:
     # ==================================================================
 
     def _assign_labels(
-        self, image: np.ndarray, regions: List[ROIRegion]
-    ) -> List[ROIRegion]:
+        self, image: np.ndarray, regions: list[ROIRegion]
+    ) -> list[ROIRegion]:
         """
         For each region, look for OCR text immediately to the LEFT or ABOVE
         the bounding box and assign it as the label.
@@ -494,7 +516,7 @@ class FormROIDetector:
                 # Try above
                 search_y1b = max(0, region.y1 - 40)
                 search_y2b = region.y1
-                above_crop = image[search_y1b:search_y2b, region.x1:region.x2]
+                above_crop = image[search_y1b:search_y2b, region.x1 : region.x2]
                 label = self._ocr_text(above_crop)
 
             region.label = label.replace("\n", " ").strip()[:80]
@@ -506,8 +528,8 @@ class FormROIDetector:
     # ==================================================================
 
     def _detect_fill_state(
-        self, image: np.ndarray, regions: List[ROIRegion]
-    ) -> List[ROIRegion]:
+        self, image: np.ndarray, regions: list[ROIRegion]
+    ) -> list[ROIRegion]:
         for region in regions:
             if region.field_type not in ("checkbox", "radio"):
                 continue
@@ -526,14 +548,14 @@ class FormROIDetector:
     # DEDUPLICATION
     # ==================================================================
 
-    def _deduplicate(self, regions: List[ROIRegion]) -> List[ROIRegion]:
+    def _deduplicate(self, regions: list[ROIRegion]) -> list[ROIRegion]:
         """Remove regions that are nearly identical or heavily overlapping."""
         if not regions:
             return regions
 
         # Sort by area descending (keep larger / more specific detections)
         regions = sorted(regions, key=lambda r: r.area, reverse=True)
-        kept: List[ROIRegion] = []
+        kept: list[ROIRegion] = []
 
         for candidate in regions:
             dominated = False
@@ -563,9 +585,11 @@ class FormROIDetector:
     @staticmethod
     def _overlaps_any(x1, y1, x2, y2, bboxes, thresh=0.5) -> bool:
         area = max(1, (x2 - x1) * (y2 - y1))
-        for (bx1, by1, bx2, by2) in bboxes:
-            ix1 = max(x1, bx1); iy1 = max(y1, by1)
-            ix2 = min(x2, bx2); iy2 = min(y2, by2)
+        for bx1, by1, bx2, by2 in bboxes:
+            ix1 = max(x1, bx1)
+            iy1 = max(y1, by1)
+            ix2 = min(x2, bx2)
+            iy2 = min(y2, by2)
             inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
             if inter / area >= thresh:
                 return True
@@ -575,10 +599,10 @@ class FormROIDetector:
     # ROW GROUPING
     # ==================================================================
 
-    def _group_rows(self, regions: List[ROIRegion]) -> List[List[ROIRegion]]:
+    def _group_rows(self, regions: list[ROIRegion]) -> list[list[ROIRegion]]:
         sorted_regions = sorted(regions, key=lambda r: (r.y1, r.x1))
-        rows: List[List[ROIRegion]] = []
-        current_row: List[ROIRegion] = []
+        rows: list[list[ROIRegion]] = []
+        current_row: list[ROIRegion] = []
 
         for region in sorted_regions:
             if not current_row:
@@ -600,12 +624,14 @@ class FormROIDetector:
     # KEY-VALUE EXTRACTION
     # ==================================================================
 
-    def _extract_key_values(
-        self, rows: List[List[ROIRegion]]
-    ) -> List[dict]:
+    def _extract_key_values(self, rows: list[list[ROIRegion]]) -> list[dict]:
         key_values = []
         for row in rows:
-            text_fields = [r for r in row if r.field_type in ("text", "textarea", "date", "dropdown", "signature")]
+            text_fields = [
+                r
+                for r in row
+                if r.field_type in ("text", "textarea", "date", "dropdown", "signature")
+            ]
             input_fields = [r for r in row if r.field_type in ("checkbox", "radio")]
 
             for tf in text_fields:
@@ -613,11 +639,13 @@ class FormROIDetector:
                 candidates = [b for b in input_fields if b.x1 > tf.x2]
                 if candidates:
                     nearest = min(candidates, key=lambda b: b.x1 - tf.x2)
-                    key_values.append({
-                        "key": tf.label or "?",
-                        "value_bbox": nearest.bbox,
-                        "type": nearest.field_type,
-                    })
+                    key_values.append(
+                        {
+                            "key": tf.label or "?",
+                            "value_bbox": nearest.bbox,
+                            "type": nearest.field_type,
+                        }
+                    )
 
         return key_values
 
@@ -627,23 +655,23 @@ class FormROIDetector:
 
     # Color palette per field type
     _TYPE_COLORS = {
-        "text":      (34, 197, 94),    # green
-        "textarea":  (16, 185, 129),   # teal
-        "checkbox":  (59, 130, 246),   # blue  (unchecked)
-        "radio":     (168, 85, 247),   # purple
-        "date":      (249, 115, 22),   # orange
-        "table":     (234, 179, 8),    # yellow
-        "dropdown":  (236, 72, 153),   # pink
-        "signature": (239, 68, 68),    # red
+        "text": (34, 197, 94),  # green
+        "textarea": (16, 185, 129),  # teal
+        "checkbox": (59, 130, 246),  # blue  (unchecked)
+        "radio": (168, 85, 247),  # purple
+        "date": (249, 115, 22),  # orange
+        "table": (234, 179, 8),  # yellow
+        "dropdown": (236, 72, 153),  # pink
+        "signature": (239, 68, 68),  # red
     }
-    _CHECKED_COLOR  = (22, 163, 74)    # dark green when checked
+    _CHECKED_COLOR = (22, 163, 74)  # dark green when checked
     _UNCHECKED_COLOR = (59, 130, 246)  # blue when unchecked
 
     def visualize(
         self,
         image: np.ndarray,
-        regions: Optional[List[ROIRegion]] = None,
-        result: Optional[dict] = None,
+        regions: list[ROIRegion] | None = None,
+        result: dict | None = None,
         show_labels: bool = True,
         show_type_legend: bool = True,
     ) -> np.ndarray:
@@ -663,7 +691,10 @@ class FormROIDetector:
             color = self._TYPE_COLORS.get(region.field_type, (200, 200, 200))
 
             # Override checkbox / radio color by state
-            if region.field_type in ("checkbox", "radio") and region.checked is not None:
+            if (
+                region.field_type in ("checkbox", "radio")
+                and region.checked is not None
+            ):
                 color = self._CHECKED_COLOR if region.checked else self._UNCHECKED_COLOR
 
             # Draw bounding rect
@@ -683,13 +714,18 @@ class FormROIDetector:
                     vis,
                     (region.x1, ty - th - 4),
                     (region.x1 + tw + 6, ty + 2),
-                    color, -1,
+                    color,
+                    -1,
                 )
                 cv2.putText(
-                    vis, tag,
+                    vis,
+                    tag,
                     (region.x1 + 3, ty - 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                    (255, 255, 255), 1, cv2.LINE_AA,
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.45,
+                    (255, 255, 255),
+                    1,
+                    cv2.LINE_AA,
                 )
 
         # Legend
@@ -698,141 +734,156 @@ class FormROIDetector:
             for ft, color in self._TYPE_COLORS.items():
                 cv2.rectangle(vis, (lx, ly), (lx + 16, ly + 16), color, -1)
                 cv2.putText(
-                    vis, ft,
+                    vis,
+                    ft,
                     (lx + 22, ly + 12),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                    color, 1, cv2.LINE_AA,
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.45,
+                    color,
+                    1,
+                    cv2.LINE_AA,
                 )
                 ly += 22
 
         return vis
 
-
     # ─────────────────────────── NEW METHODS ───────────────────────────
 
     def crop_roi(self, image: np.ndarray, region: "ROIRegion") -> np.ndarray:
-      """Crop a single ROI region out of the source image.
-      Useful for feeding individual fields into an OCR or classifier.
+        """Crop a single ROI region out of the source image.
+        Useful for feeding individual fields into an OCR or classifier.
 
-      Args:
-        image: BGR numpy array (the original form image).
-        region: ROIRegion object from process()["regions"].
-      Returns:
-        BGR numpy array crop, or empty array if out of bounds.
-      """
-      h, w = image.shape[:2]
-      x1 = max(0, region.x1)
-      y1 = max(0, region.y1)
-      x2 = min(w, region.x2)
-      y2 = min(h, region.y2)
-      return image[y1:y2, x1:x2].copy()
+        Args:
+          image: BGR numpy array (the original form image).
+          region: ROIRegion object from process()["regions"].
+        Returns:
+          BGR numpy array crop, or empty array if out of bounds.
+        """
+        h, w = image.shape[:2]
+        x1 = max(0, region.x1)
+        y1 = max(0, region.y1)
+        x2 = min(w, region.x2)
+        y2 = min(h, region.y2)
+        return image[y1:y2, x1:x2].copy()
 
     def extract_field_values(self, image: np.ndarray, regions) -> dict:
-      """OCR every detected field and return {label: text} mapping.
-      Skips checkbox/radio (use region.checked instead) and empty labels.
+        """OCR every detected field and return {label: text} mapping.
+        Skips checkbox/radio (use region.checked instead) and empty labels.
 
-      Args:
-        image: BGR numpy array.
-        regions: List of ROIRegion from process()["regions"].
-      Returns:
-        dict: {field_label: ocr_text}
-      """
-      if not TESSERACT_AVAILABLE:
-        return {}
-      values = {}
-      for region in regions:
-        if region.field_type in ("checkbox", "radio"):
-          key = region.label or f"{region.field_type}_{region.x1}_{region.y1}"
-          values[key] = region.checked
-          continue
-        crop = self.crop_roi(image, region)
-        if crop.size == 0:
-          continue
-        text = self._ocr_text(crop)
-        key = region.label or f"{region.field_type}_{region.x1}_{region.y1}"
-        values[key] = text
-      return values
+        Args:
+          image: BGR numpy array.
+          regions: List of ROIRegion from process()["regions"].
+        Returns:
+          dict: {field_label: ocr_text}
+        """
+        if not TESSERACT_AVAILABLE:
+            return {}
+        values = {}
+        for region in regions:
+            if region.field_type in ("checkbox", "radio"):
+                key = region.label or f"{region.field_type}_{region.x1}_{region.y1}"
+                values[key] = region.checked
+                continue
+            crop = self.crop_roi(image, region)
+            if crop.size == 0:
+                continue
+            text = self._ocr_text(crop)
+            key = region.label or f"{region.field_type}_{region.x1}_{region.y1}"
+            values[key] = text
+        return values
 
     def filter_by_type(self, regions, field_type: str):
-      """Return only regions matching the given field_type.
+        """Return only regions matching the given field_type.
 
-      Args:
-        regions: List of ROIRegion from process()["regions"].
-        field_type: One of 'text', 'textarea', 'checkbox', 'radio', 'date',
-                    'table', 'dropdown', 'signature'.
-      Returns:
-        List[ROIRegion]
-      """
-      return [r for r in regions if r.field_type == field_type]
+        Args:
+          regions: List of ROIRegion from process()["regions"].
+          field_type: One of 'text', 'textarea', 'checkbox', 'radio', 'date',
+                      'table', 'dropdown', 'signature'.
+        Returns:
+          List[ROIRegion]
+        """
+        return [r for r in regions if r.field_type == field_type]
 
     def get_checked_fields(self, regions):
-      """Return only checkbox and radio regions that are checked.
+        """Return only checkbox and radio regions that are checked.
 
-      Args:
-        regions: List of ROIRegion from process()["regions"].
-      Returns:
-        List[ROIRegion]
-      """
-      return [r for r in regions
-              if r.field_type in ("checkbox", "radio") and r.checked is True]
+        Args:
+          regions: List of ROIRegion from process()["regions"].
+        Returns:
+          List[ROIRegion]
+        """
+        return [
+            r
+            for r in regions
+            if r.field_type in ("checkbox", "radio") and r.checked is True
+        ]
 
     def export_to_json(self, result: dict, path: str = "form_rois.json"):
-      """Save the canonical ROI list from process() to a JSON file.
+        """Save the canonical ROI list from process() to a JSON file.
 
-      Args:
-        result: Dict returned by process().
-        path: Output file path.
-      Returns:
-        str: Absolute path of the written file.
-      """
-      import json, os
-      roi_serialisable = []
-      for entry in result.get("roi", []):
-        (x1, y1), (x2, y2), ftype, label = entry
-        roi_serialisable.append({
-          "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-          "type": ftype, "label": label
-        })
-      with open(path, "w", encoding="utf-8") as f:
-        json.dump(roi_serialisable, f, indent=2)
-      return os.path.abspath(path)
+        Args:
+          result: Dict returned by process().
+          path: Output file path.
+        Returns:
+          str: Absolute path of the written file.
+        """
+        import json
+        import os
+
+        roi_serialisable = []
+        for entry in result.get("roi", []):
+            (x1, y1), (x2, y2), ftype, label = entry
+            roi_serialisable.append(
+                {"x1": x1, "y1": y1, "x2": x2, "y2": y2, "type": ftype, "label": label}
+            )
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(roi_serialisable, f, indent=2)
+        return os.path.abspath(path)
 
     def export_to_csv(self, result: dict, path: str = "form_rois.csv"):
-      """Save the ROI list from process() to a CSV file.
-      Columns: x1, y1, x2, y2, type, label, checked.
+        """Save the ROI list from process() to a CSV file.
+        Columns: x1, y1, x2, y2, type, label, checked.
 
-      Args:
-        result: Dict returned by process().
-        path: Output file path.
-      Returns:
-        str: Absolute path of the written file.
-      """
-      import csv, os
-      with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["x1", "y1", "x2", "y2", "type", "label", "checked"])
-        writer.writeheader()
-        for region in result.get("regions", []):
-          writer.writerow({
-            "x1": region.x1, "y1": region.y1,
-            "x2": region.x2, "y2": region.y2,
-            "type": region.field_type,
-            "label": region.label,
-            "checked": region.checked,
-          })
-      return os.path.abspath(path)
+        Args:
+          result: Dict returned by process().
+          path: Output file path.
+        Returns:
+          str: Absolute path of the written file.
+        """
+        import csv
+        import os
+
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f, fieldnames=["x1", "y1", "x2", "y2", "type", "label", "checked"]
+            )
+            writer.writeheader()
+            for region in result.get("regions", []):
+                writer.writerow(
+                    {
+                        "x1": region.x1,
+                        "y1": region.y1,
+                        "x2": region.x2,
+                        "y2": region.y2,
+                        "type": region.field_type,
+                        "label": region.label,
+                        "checked": region.checked,
+                    }
+                )
+        return os.path.abspath(path)
 
     def get_field_count(self, regions) -> dict:
-      """Return count of each field type detected.
+        """Return count of each field type detected.
 
-      Args:
-        regions: List of ROIRegion from process()["regions"].
-      Returns:
-        dict: {'text': 4, 'checkbox': 6, ...}
-      """
-      counts: dict = {}
-      for r in regions:
-        counts[r.field_type] = counts.get(r.field_type, 0) + 1
-      return counts
+        Args:
+          regions: List of ROIRegion from process()["regions"].
+        Returns:
+          dict: {'text': 4, 'checkbox': 6, ...}
+        """
+        counts: dict = {}
+        for r in regions:
+            counts[r.field_type] = counts.get(r.field_type, 0) + 1
+        return counts
 
     def get_empty_fields(self, regions):
         """Return checkbox/radio regions that are not checked.
@@ -844,7 +895,8 @@ class FormROIDetector:
             and checked is not True.
         """
         return [
-            r for r in regions
+            r
+            for r in regions
             if r.field_type in ("checkbox", "radio") and not r.checked
         ]
 
@@ -858,11 +910,12 @@ class FormROIDetector:
             dict with keys 'missing' and 'filled', each a list of labels.
         """
         checked_labels = {
-            r.label.lower() for r in regions
+            r.label.lower()
+            for r in regions
             if r.field_type in ("checkbox", "radio") and r.checked
         }
-        missing = [l for l in required_labels if l.lower() not in checked_labels]
-        filled = [l for l in required_labels if l.lower() in checked_labels]
+        missing = [lbl for lbl in required_labels if lbl.lower() not in checked_labels]
+        filled = [lbl for lbl in required_labels if lbl.lower() in checked_labels]
         return {"missing": missing, "filled": filled}
 
     def get_field_by_label(self, regions, label):
@@ -921,11 +974,12 @@ class FormROIDetector:
         """
         result = {}
         for r in regions:
-            crop = image[r.y1:r.y2, r.x1:r.x2]
+            crop = image[r.y1 : r.y2, r.x1 : r.x2]
             result[r.label] = self._ocr_text(crop)
         return result
 
-##Usages:
+
+# Usages:
 
 # import cv2
 # from form_roi_detector import FormROIDetector
@@ -952,7 +1006,7 @@ class FormROIDetector:
 # key_values = result["key_values"]  # [{key, value_bbox, type}, ...]
 
 
-## Advanced Usage:
+# Advanced Usage:
 # image = cv2.imread("my_form.png")
 # detector = FormROIDetector(
 #     min_area     = 400,    # px² — ignore tiny noise contours
@@ -986,7 +1040,6 @@ class FormROIDetector:
 # cv2.imwrite("debug.png", debug_img)
 
 
-
 # ROI Output Format:
 # roi = [
 #     [(90,  980),  (650,  1120), "text",      "Name"       ],
@@ -1001,8 +1054,7 @@ class FormROIDetector:
 # ]
 
 
-
-##Visualization
+# Visualization
 # Option 1 — via process() result
 # image = cv2.imread("my_form.png")
 # detector = FormROIDetector(enable_ocr=True)

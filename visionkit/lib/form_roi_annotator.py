@@ -1,9 +1,9 @@
-import cv2
-import sys
 import json
-from typing import List, Tuple
-from datetime import datetime
 import os
+import sys
+from datetime import datetime
+
+import cv2
 
 """
 Form ROI Annotator
@@ -38,6 +38,8 @@ python form_roi_annotator.py your_form.jpg
 python form_roi_annotator.py your_form.jpg annotated_rois_latest.json
 
 """
+
+
 class FormROIAnnotator:
     def __init__(self, image_path: str, load_path: str = None):
         self.image_path = image_path
@@ -46,21 +48,34 @@ class FormROIAnnotator:
             raise FileNotFoundError(f"Could not load image: {image_path}")
 
         self.clone = self.image.copy()
-        self.rois: List = []   # Now: [[(x1,y1), (x2,y2), "type", "label", "category"], ...]
-        self.current_points: List[Tuple[int, int]] = []
+        self.rois: list = []  # Now: [[(x1,y1), (x2,y2), "type", "label", "category"], ...]
+        self.current_points: list[tuple[int, int]] = []
 
         # Supported field types
         self.field_types = [
-            "text", "textbox", "box", "checkbox", "radio",
-            "daterange", "date_range", "table", "table_cell",
-            "signature", "dropdown", "header", "footer", "paragraph",
-            "logo", "line", "custom"
+            "text",
+            "textbox",
+            "box",
+            "checkbox",
+            "radio",
+            "daterange",
+            "date_range",
+            "table",
+            "table_cell",
+            "signature",
+            "dropdown",
+            "header",
+            "footer",
+            "paragraph",
+            "logo",
+            "line",
+            "custom",
         ]
 
         # Load existing annotations if provided
         if load_path and os.path.exists(load_path):
             try:
-                with open(load_path, "r") as f:
+                with open(load_path) as f:
                     self.rois = json.load(f)
                 print(f"✅ Loaded {len(self.rois)} existing ROIs from {load_path}")
                 self._redraw_all_rois()
@@ -88,12 +103,11 @@ class FormROIAnnotator:
                 self.clone = self.image.copy()
                 self._redraw_all_rois()
 
-        elif event == cv2.EVENT_RBUTTONDOWN:
-            if self.current_points:
-                self.current_points.clear()
-                self.clone = self.image.copy()
-                self._redraw_all_rois()
-                print("🗑️ Current selection cancelled.")
+        elif event == cv2.EVENT_RBUTTONDOWN and self.current_points:
+            self.current_points.clear()
+            self.clone = self.image.copy()
+            self._redraw_all_rois()
+            print("🗑️ Current selection cancelled.")
 
     def _select_and_add_roi(self, x1: int, y1: int, x2: int, y2: int):
         print("\n" + "=" * 75)
@@ -116,10 +130,14 @@ class FormROIAnnotator:
                 print("Please enter a valid number.")
 
         # Label (what is written inside / on the field)
-        label = input(f"Enter label/text visible on field (press Enter to skip): ").strip()
+        label = input(
+            "Enter label/text visible on field (press Enter to skip): "
+        ).strip()
 
         # NEW: Category (semantic group / section the field belongs to)
-        print("\nEnter Category (e.g., Personal Info, Contact, Meal Preference, Satisfaction, etc.)")
+        print(
+            "\nEnter Category (e.g., Personal Info, Contact, Meal Preference, Satisfaction, etc.)"
+        )
         category = input("Category: ").strip()
         if not category:
             category = "Uncategorized"
@@ -127,7 +145,9 @@ class FormROIAnnotator:
         # Store in new 5-element format
         self.rois.append([(x1, y1), (x2, y2), field_type, label, category])
 
-        print(f"✅ ROI Added → Type: {field_type} | Label: '{label}' | Category: '{category}'")
+        print(
+            f"✅ ROI Added → Type: {field_type} | Label: '{label}' | Category: '{category}'"
+        )
 
         self._save_latest()
 
@@ -142,21 +162,53 @@ class FormROIAnnotator:
 
             # Main display text: Type + Label
             display_text = f"{ftype}: {label}" if label else ftype
-            cv2.putText(self.clone, display_text, (x1, max(15, y1 - 10)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, color, 2, cv2.LINE_AA)
+            cv2.putText(
+                self.clone,
+                display_text,
+                (x1, max(15, y1 - 10)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                color,
+                2,
+                cv2.LINE_AA,
+            )
 
             # Show Category below the box
             if category and category != "Uncategorized":
-                cv2.putText(self.clone, f"[{category}]", (x1, y2 + 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 200, 255), 2, cv2.LINE_AA)
+                cv2.putText(
+                    self.clone,
+                    f"[{category}]",
+                    (x1, y2 + 25),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    (200, 200, 255),
+                    2,
+                    cv2.LINE_AA,
+                )
 
             # Index number
-            cv2.putText(self.clone, str(idx), (x1 + 8, y1 + 28),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.85, (255, 255, 255), 2)
-            cv2.putText(self.clone, str(idx), (x1 + 8, y1 + 28),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.85, color, 1)
+            cv2.putText(
+                self.clone,
+                str(idx),
+                (x1 + 8, y1 + 28),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.85,
+                (255, 255, 255),
+                2,
+            )
+            cv2.putText(
+                self.clone,
+                str(idx),
+                (x1 + 8, y1 + 28),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.85,
+                color,
+                1,
+            )
 
-        cv2.setWindowTitle("Form ROI Annotator", f"Form ROI Annotator — {len(self.rois)} ROIs")
+        cv2.setWindowTitle(
+            "Form ROI Annotator", f"Form ROI Annotator — {len(self.rois)} ROIs"
+        )
 
     def _get_color(self, ftype: str):
         color_map = {
@@ -195,7 +247,7 @@ class FormROIAnnotator:
         try:
             idx = int(input("\nEnter ROI number to delete (0 to cancel): "))
             if 1 <= idx <= len(self.rois):
-                removed = self.rois.pop(idx - 1)
+                self.rois.pop(idx - 1)
                 print(f"🗑️ Deleted ROI #{idx}")
                 self._redraw_all_rois()
                 self._save_latest()
@@ -217,9 +269,11 @@ class FormROIAnnotator:
                 return
 
             roi = self.rois[idx - 1]
-            (_, _, ftype, label, category) = roi
+            _, _, ftype, label, category = roi
 
-            print(f"\nEditing ROI #{idx} (Current: Type={ftype}, Label='{label}', Category='{category}')")
+            print(
+                f"\nEditing ROI #{idx} (Current: Type={ftype}, Label='{label}', Category='{category}')"
+            )
 
             # Re-select type
             choice_str = input("New type number (Enter to keep): ").strip()
@@ -232,7 +286,7 @@ class FormROIAnnotator:
                         new_type = self.field_types[ch - 1]
                     else:
                         new_type = ftype
-                except:
+                except (ValueError, IndexError):
                     new_type = ftype
             else:
                 new_type = ftype
@@ -271,25 +325,40 @@ class FormROIAnnotator:
             color = self._get_color(ftype)
             cv2.rectangle(vis, (x1, y1), (x2, y2), color, 3)
             text = f"{ftype}: {label}" if label else ftype
-            cv2.putText(vis, text, (x1, max(10, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.65, color, 2)
+            cv2.putText(
+                vis,
+                text,
+                (x1, max(10, y1 - 8)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.65,
+                color,
+                2,
+            )
 
             if category and category != "Uncategorized":
-                cv2.putText(vis, f"[{category}]", (x1, y2 + 22),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 200, 255), 2)
+                cv2.putText(
+                    vis,
+                    f"[{category}]",
+                    (x1, y2 + 22),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    (200, 200, 255),
+                    2,
+                )
 
         cv2.imwrite(png_file, vis)
         print(f"💾 Timestamped backup saved: {json_file} & {png_file}")
 
     def run(self):
-        print("\n" + "="*95)
+        print("\n" + "=" * 95)
         print("🚀 FORM ROI ANNOTATOR with Category Support")
-        print("="*95)
+        print("=" * 95)
         print("Now each ROI includes: [ (x1,y1), (x2,y2), type, label, category ]")
         print("\nKeyboard Shortcuts:")
         print("  u = Undo last    |  d = Delete specific    |  e = Edit ROI")
         print("  c = Clear all    |  s = Manual save        |  l = List ROIs")
         print("  h = Help         |  ESC = Finish & Exit")
-        print("="*95)
+        print("=" * 95)
 
         cv2.namedWindow("Form ROI Annotator", cv2.WINDOW_NORMAL)
         cv2.setMouseCallback("Form ROI Annotator", self.mouse_callback)
@@ -298,27 +367,30 @@ class FormROIAnnotator:
             cv2.imshow("Form ROI Annotator", self.clone)
             key = cv2.waitKey(1) & 0xFF
 
-            if key == 27:        # ESC
+            if key == 27:  # ESC
                 break
-            elif key == ord('u'):
+            elif key == ord("u"):
                 self._undo_last()
-            elif key == ord('d'):
+            elif key == ord("d"):
                 self._delete_specific()
-            elif key == ord('e'):
+            elif key == ord("e"):
                 self._edit_roi()
-            elif key == ord('c'):
-                if input("Clear ALL ROIs? Type YES to confirm: ").strip().upper() == "YES":
+            elif key == ord("c"):
+                if (
+                    input("Clear ALL ROIs? Type YES to confirm: ").strip().upper()
+                    == "YES"
+                ):
                     self.rois.clear()
                     self.clone = self.image.copy()
                     self._redraw_all_rois()
                     self._save_latest()
-            elif key == ord('s'):
+            elif key == ord("s"):
                 self._save_with_timestamp()
-            elif key == ord('l'):
+            elif key == ord("l"):
                 print("\nCurrent ROIs:")
                 for i, r in enumerate(self.rois, 1):
                     print(f"  {i:2d}. {r}")
-            elif key == ord('h'):
+            elif key == ord("h"):
                 print("Use mouse + shortcuts as shown above.")
 
         cv2.destroyAllWindows()
@@ -326,17 +398,16 @@ class FormROIAnnotator:
         self._save_latest()
         self._save_with_timestamp()
 
-        print("\n" + "="*95)
+        print("\n" + "=" * 95)
         print("ANNOTATION COMPLETED!")
         print("Final ROI (with category):")
         print("roi =", self.rois)
         print("\nSaved files: annotated_rois_latest.json + timestamped backups")
         print("   • Multiple timestamped backups + annotated images")
 
-
     # ─────────────────────────── NEW METHODS ───────────────────────────
 
-    def export_to_json(self, path: str = "annotated_rois_export.json") -> str:
+    def export_rois_to_json(self, path: str = "annotated_rois_export.json") -> str:
         """Save current ROI list to a JSON file (public API wrapper around _save_latest).
 
         Args:
@@ -345,6 +416,7 @@ class FormROIAnnotator:
           str: Absolute path of the written file.
         """
         import os
+
         with open(path, "w") as f:
             json.dump(self.rois, f, indent=2)
         return os.path.abspath(path)
@@ -355,7 +427,7 @@ class FormROIAnnotator:
         Args:
           path: Path to a JSON file previously exported by export_to_json().
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             self.rois = json.load(f)
         self._redraw_all_rois()
         print(f"Loaded {len(self.rois)} ROIs from {path}")
@@ -414,13 +486,21 @@ class FormROIAnnotator:
           pandas.DataFrame
         """
         import pandas as pd
+
         rows = []
         for roi in self.rois:
             (x1, y1), (x2, y2), ftype, label, category = roi
-            rows.append({
-                "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-                "field_type": ftype, "label": label, "category": category
-            })
+            rows.append(
+                {
+                    "x1": x1,
+                    "y1": y1,
+                    "x2": x2,
+                    "y2": y2,
+                    "field_type": ftype,
+                    "label": label,
+                    "category": category,
+                }
+            )
         return pd.DataFrame(rows)
 
     def validate_rois(self) -> list:
@@ -449,7 +529,9 @@ class FormROIAnnotator:
                     area_a = (ax2 - ax1) * (ay2 - ay1)
                     iou = inter / max(area_a, 1)
                     if iou > 0.5:
-                        issues.append(f"ROI #{i+1} and #{j+1} overlap significantly (IoU={iou:.2f}).")
+                        issues.append(
+                            f"ROI #{i + 1} and #{j + 1} overlap significantly (IoU={iou:.2f})."
+                        )
         return issues
 
     def get_summary(self) -> str:
@@ -488,9 +570,13 @@ class FormROIAnnotator:
         """
         data = [
             {
-                "x1": a[0][0], "y1": a[0][1],
-                "x2": a[1][0], "y2": a[1][1],
-                "type": a[2], "label": a[3], "category": a[4],
+                "x1": a[0][0],
+                "y1": a[0][1],
+                "x2": a[1][0],
+                "y2": a[1][1],
+                "type": a[2],
+                "label": a[3],
+                "category": a[4],
             }
             for a in annotations
         ]
@@ -506,6 +592,7 @@ class FormROIAnnotator:
             dict mapping field type string to integer count.
         """
         from collections import Counter
+
         return dict(Counter(a[2] for a in annotations))
 
     def merge_annotations(self, ann_list_a, ann_list_b) -> list:
@@ -521,6 +608,7 @@ class FormROIAnnotator:
         Returns:
             Merged list with duplicates removed.
         """
+
         def iou(a, b):
             ax1, ay1 = a[0]
             ax2, ay2 = a[1]
@@ -558,8 +646,15 @@ class FormROIAnnotator:
         box_h = 20 + len(lines) * 22
         cv2.rectangle(out, (5, 5), (180, box_h), (0, 0, 0), -1)
         for i, line in enumerate(lines):
-            cv2.putText(out, line, (10, 22 + i * 22),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            cv2.putText(
+                out,
+                line,
+                (10, 22 + i * 22),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),
+                1,
+            )
         return out
 
 
@@ -569,7 +664,9 @@ if __name__ == "__main__":
         print("   python form_roi_annotator.py <image_path> [existing_rois.json]")
         print("Example:")
         print("   python form_roi_annotator.py form_sample.jpg")
-        print("   python form_roi_annotator.py form_sample.jpg annotated_rois_latest.json")
+        print(
+            "   python form_roi_annotator.py form_sample.jpg annotated_rois_latest.json"
+        )
         sys.exit(1)
 
     image_path = sys.argv[1]

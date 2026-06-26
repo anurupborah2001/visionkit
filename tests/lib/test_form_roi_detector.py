@@ -1,8 +1,10 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
-import pytest
+
 from visionkit.lib.form_roi_detector import FormROIDetector, ROIRegion
 
 
@@ -10,8 +12,9 @@ def det():
     return FormROIDetector.__new__(FormROIDetector)
 
 
-def make_region(field_type="checkbox", label="agree", checked=None,
-                x1=10, y1=10, x2=50, y2=30):
+def make_region(
+    field_type="checkbox", label="agree", checked=None, x1=10, y1=10, x2=50, y2=30
+):
     r = ROIRegion.__new__(ROIRegion)
     r.field_type = field_type
     r.label = label

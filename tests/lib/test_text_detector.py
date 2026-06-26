@@ -1,8 +1,10 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
-import pytest
+
 from visionkit.lib.text_detector import TextDetector
 
 
@@ -11,11 +13,16 @@ def det(text="Hello world"):
     d = TextDetector.__new__(TextDetector)
     d.image = img
     d.detect_text = lambda: text
-    d.filter_words_by_confidence = lambda conf: [{"text": w} for w in text.split()] if text.strip() else []
-    d.detect_words = lambda: (None, [
-        {"text": w, "left": i * 50, "top": 0, "width": 40, "height": 20}
-        for i, w in enumerate(text.split())
-    ])
+    d.filter_words_by_confidence = lambda conf: (
+        [{"text": w} for w in text.split()] if text.strip() else []
+    )
+    d.detect_words = lambda: (
+        None,
+        [
+            {"text": w, "left": i * 50, "top": 0, "width": 40, "height": 20}
+            for i, w in enumerate(text.split())
+        ],
+    )
     return d
 
 

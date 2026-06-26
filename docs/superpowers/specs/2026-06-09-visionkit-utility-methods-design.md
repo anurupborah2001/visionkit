@@ -1,6 +1,6 @@
 # VisionKit Utility Methods — Design Spec
-**Date:** 2026-06-09  
-**Approach:** In-place additions to existing class files (Approach A)  
+**Date:** 2026-06-09
+**Approach:** In-place additions to existing class files (Approach A)
 **Scope:** 11 classes across `visionkit/lib/`
 
 ---

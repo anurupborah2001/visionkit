@@ -1,9 +1,12 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
-import pytest
+
 from visionkit.lib.face_detector import FaceDetector
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from conftest import blank_bgr, make_face_detection
 
@@ -77,14 +80,20 @@ def test_get_attention_score_zero_when_no_detections():
 
 def test_get_attention_score_returns_float_0_to_1():
     d = det()
-    score = d.get_attention_score([make_face_detection(x=280, y=200, w=80, h=80)], 640, 480)
+    score = d.get_attention_score(
+        [make_face_detection(x=280, y=200, w=80, h=80)], 640, 480
+    )
     assert 0.0 <= score <= 1.0
 
 
 def test_get_attention_score_centered_face_higher_than_corner():
     d = det()
-    center = d.get_attention_score([make_face_detection(x=280, y=200, w=80, h=80)], 640, 480)
-    corner = d.get_attention_score([make_face_detection(x=0, y=0, w=20, h=20)], 640, 480)
+    center = d.get_attention_score(
+        [make_face_detection(x=280, y=200, w=80, h=80)], 640, 480
+    )
+    corner = d.get_attention_score(
+        [make_face_detection(x=0, y=0, w=20, h=20)], 640, 480
+    )
     assert center > corner
 
 

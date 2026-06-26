@@ -1,12 +1,13 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import math
-import numpy as np
-import pytest
-from visionkit.lib.pose_detector import PoseDetector
+
 from conftest import MockLandmark, MockPoseResult, blank_bgr
+
+from visionkit.lib.pose_detector import PoseDetector
 
 
 def det():
@@ -15,10 +16,10 @@ def det():
 
 def make_upright():
     lms = [MockLandmark(x=0.5, y=0.5) for _ in range(33)]
-    lms[11] = MockLandmark(x=0.4, y=0.3)   # left shoulder
-    lms[12] = MockLandmark(x=0.6, y=0.3)   # right shoulder
-    lms[23] = MockLandmark(x=0.4, y=0.6)   # left hip
-    lms[24] = MockLandmark(x=0.6, y=0.6)   # right hip
+    lms[11] = MockLandmark(x=0.4, y=0.3)  # left shoulder
+    lms[12] = MockLandmark(x=0.6, y=0.3)  # right shoulder
+    lms[23] = MockLandmark(x=0.4, y=0.6)  # left hip
+    lms[24] = MockLandmark(x=0.6, y=0.6)  # right hip
     return lms
 
 

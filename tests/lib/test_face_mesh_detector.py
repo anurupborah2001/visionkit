@@ -1,11 +1,12 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import numpy as np
-import pytest
+from conftest import blank_bgr, make_blend, make_face_478
+
 from visionkit.lib.face_mesh_detector import FaceMeshDetector
-from conftest import make_blend, make_face_478, blank_bgr
 
 
 def det():
@@ -66,8 +67,10 @@ def test_is_eyes_closed_both_low(monkeypatch):
 
 def test_is_eyes_closed_one_open(monkeypatch):
     d = det()
+
     def mock_ear(face, eye="left"):
         return 0.15 if eye == "left" else 0.35
+
     monkeypatch.setattr(d, "get_eye_aspect_ratio", mock_ear)
     assert d.is_eyes_closed(FACE, ear_threshold=0.22) is False
 

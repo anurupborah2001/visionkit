@@ -1,0 +1,90 @@
+name: Semantic Release
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write       # push version bump commit + tag
+  id-token: write       # OIDC for PyPI trusted publishing (used by publish.yml)
+  issues: write         # allow PSR to close issues via release notes
+  pull-requests: write  # allow PSR to comment on PRs
+
+jobs:
+  release:
+    name: Semantic version bump & GitHub Release
+    runs-on: ubuntu-latest
+    # Skip if the push is itself a release commit (avoids infinite loops)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    concurrency:
+      group: semantic-release
+      cancel-in-progress: false   # never cancel a release mid-flight
+
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+
+    steps:
+      - name: Checkout (full history required for commit analysis)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Configure git identity for version bump commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run python-semantic-release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        run: |
+          # --vcs-release creates the GitHub Release + attaches build artifacts
+          uv run semantic-release version --vcs-release
+          # PSR sets NEXT_VERSION env var; capture it for downstream jobs
+          RELEASED=$(git tag --points-at HEAD | grep -qE '^v[0-9]' && echo 'true' || echo 'false')
+          VERSION=$(git tag --points-at HEAD | grep -E '^v[0-9]' | sed 's/^v//' || true)
+          echo "released=${RELEASED}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"   >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}"      >> "$GITHUB_OUTPUT"
+
+  # ── Trigger PyPI publish after a successful release ────────────────────────
+  # publish.yml already triggers on `release: published`; this job is a
+  # safety net that re-dispatches it if the event didn't fire automatically.
+  trigger-publish:
+    name: Trigger PyPI publish
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Dispatch publish workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'publish.yml',
+              ref: '${{ needs.release.outputs.tag }}',
+              inputs: { target: 'pypi' },
+            })

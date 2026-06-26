@@ -1,11 +1,14 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import json
-import pytest
+
+from conftest import MockDetection, MockObjectResult, blank_bgr
+
 from visionkit.lib.object_detector import ObjectDetector
-from conftest import blank_bgr, MockDetection, MockObjectResult
 
 
 def det():
@@ -54,7 +57,7 @@ def test_get_objects_by_size_sorted():
 
 def test_get_proximity_between_two_dets():
     d = det()
-    a = MockDetection(x=0, y=0, w=10, h=10)   # center (5,5)
+    a = MockDetection(x=0, y=0, w=10, h=10)  # center (5,5)
     b = MockDetection(x=90, y=0, w=10, h=10)  # center (95,5)
     prox = d.get_proximity(a, b)
     assert abs(prox - 90.0) < 1.0

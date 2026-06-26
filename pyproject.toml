@@ -1,9 +1,24 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
 [project]
 name = "visionkit"
 version = "0.1.0"
-description = "Add your description here"
+description = "MediaPipe Tasks API wrapper for Python computer vision"
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11.8"
+keywords = ["computer-vision", "mediapipe", "opencv", "face-detection", "pose-estimation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
 dependencies = [
     "imageio>=2.37.3",
     "imutils>=0.5.4",
@@ -18,5 +33,88 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "black>=26.5.1",
+    "flake8>=7.3.0",
+    "flake8-bugbear>=25.11.29",
+    "flake8-comprehensions>=3.17.0",
+    "flake8-simplify>=0.30.0",
+    "hatchling>=1.30.1",
+    "isort>=8.0.1",
+    "pip-audit>=2.9.0",
+    "pre-commit>=4.6.0",
     "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "python-semantic-release>=9.21.1",
+    "pyupgrade>=3.21.2",
+    "ruff>=0.15.16",
+    "twine>=6.2.0",
 ]
+
+[tool.hatch.build]
+exclude = [
+    "visionkit/lib/models/",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["visionkit"]
+
+# ── Semantic Release ───────────────────────────────────────────────────────────
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["visionkit/__init__.py:__version__"]
+branch = "main"
+tag_format = "v{version}"
+commit_message = "chore(release): v{version} [skip ci]"
+# Build + publish are handled by the separate publish.yml workflow
+build_command = "uv build"
+upload_to_pypi = false
+upload_to_release = true                 # attaches sdist/wheel to the GitHub Release
+
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+    "^chore\\(release\\):",
+    "^chore: bump",
+]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.branches.main]
+match = "(main|master)"
+prerelease_token = "rc"
+prerelease = false
+
+[tool.semantic_release.commit_parser_options]
+# Maps commit types to semver bump level
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf", "refactor"]
+# Any commit with BREAKING CHANGE footer or ! → major bump
+
+# ── Build ──────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: fast, pure-Python tests with no model files or external services",
+    "integration: tests requiring real .tflite/.task model files",
+    "slow: tests that take > 5 s",
+]
+addopts = "-ra -q"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "SIM", "I"]
+ignore = ["E203", "E501"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]

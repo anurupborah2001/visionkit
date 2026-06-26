@@ -1,0 +1,79 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate config for VisionKit — automated dependency updates with security alerts",
+  "extends": [
+    "config:recommended",
+    "security:openssf-scorecard",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeMinor",
+    "group:allNonMajor"
+  ],
+
+  "timezone": "Asia/Singapore",
+  "schedule": ["before 6am on Monday"],
+
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "automerge": false,
+    "prPriority": 10,
+    "schedule": ["at any time"]
+  },
+
+  "packageRules": [
+    {
+      "description": "MediaPipe and OpenCV — major bumps need manual review (API breaks)",
+      "matchPackageNames": ["mediapipe", "opencv-python"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "review-required"]
+    },
+    {
+      "description": "Auto-merge minor/patch for dev tooling",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Python runtime pin — manual only",
+      "matchPackageNames": ["python"],
+      "enabled": false
+    },
+    {
+      "description": "Group all GitHub Actions bumps into one PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Security vulnerabilities — immediate PR regardless of schedule",
+      "matchPackageNames": ["*"],
+      "isVulnerabilityAlert": true,
+      "schedule": ["at any time"],
+      "automerge": false,
+      "labels": ["security", "priority"]
+    }
+  ],
+
+  "pip_requirements": {
+    "fileMatch": ["(^|/)requirements.*\\.txt$"]
+  },
+
+  "uv": {
+    "fileMatch": ["(^|/)pyproject\\.toml$", "(^|/)uv\\.lock$"]
+  },
+
+  "commitMessagePrefix": "chore(deps):",
+  "prCreation": "immediate",
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "rebaseWhen": "conflicted",
+  "labels": ["dependencies"],
+  "assignees": [],
+  "reviewers": []
+}
