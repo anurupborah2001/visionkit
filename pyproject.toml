@@ -1,9 +1,24 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
 [project]
 name = "visionkit"
 version = "0.1.0"
-description = "Add your description here"
+description = "MediaPipe Tasks API wrapper for Python computer vision"
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11.8"
+keywords = ["computer-vision", "mediapipe", "opencv", "face-detection", "pose-estimation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
 dependencies = [
     "imageio>=2.37.3",
     "imutils>=0.5.4",
@@ -18,5 +33,44 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "commitizen>=4.16.4",
+    "pip-audit>=2.9.0",
     "pytest>=9.0.3",
+    "twine>=6.2.0",
 ]
+
+[tool.hatch.build]
+exclude = [
+    "visionkit/lib/models/",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["visionkit"]
+
+# ── Commitizen ─────────────────────────────────────────────────────────────────
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+version_scheme = "semver"
+version_provider = "commitizen"
+tag_format = "v$version"
+bump_message = "chore(release): bump version $current_version → $new_version"
+changelog_file = "CHANGELOG.md"
+update_changelog_on_bump = false
+version_files = [
+    "pyproject.toml:version = \"",
+    "visionkit/__init__.py:__version__ = \"",
+]
+
+# ── Pytest ─────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: fast, pure-Python tests with no model files or external services",
+    "integration: tests requiring real .tflite/.task model files",
+    "slow: tests that take > 5 s",
+]
+addopts = "-ra -q"

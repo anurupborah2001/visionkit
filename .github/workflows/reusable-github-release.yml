@@ -1,0 +1,193 @@
+name: Reusable GitHub Release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Git tag to release (e.g. v0.2.1). Must already exist in the repo.
+        required: true
+        type: string
+      python-version:
+        description: Python version used to build distribution artifacts
+        required: false
+        default: "3.11"
+        type: string
+      prerelease:
+        description: Mark this release as a pre-release
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  github-release:
+    name: Create GitHub Release — ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create release, upload assets
+
+    steps:
+      # ── Checkout at the exact tag ─────────────────────────────────────────
+      - name: Check out repository at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      # ── Toolchain ─────────────────────────────────────────────────────────
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          enable-cache: true
+
+      # ── Derive version string from tag ────────────────────────────────────
+      - name: Derive version from tag
+        id: version
+        run: |
+          TAG="${{ inputs.tag }}"
+          VERSION="${TAG#v}"   # strip leading 'v'
+          echo "tag=${TAG}"         >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          PRERELEASE="${{ inputs.prerelease }}"
+          if [ "$PRERELEASE" = "true" ] || echo "$TAG" | grep -qE '\-(alpha|beta|rc|dev)'; then
+            echo "prerelease=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Build distribution artifacts ──────────────────────────────────────
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: List built artifacts
+        run: ls -lh dist/
+
+      # ── Validate distribution with twine ──────────────────────────────────
+      - name: Validate distributions
+        run: |
+          uv tool install twine
+          uv tool run twine check dist/*
+
+      # ── Generate SHA-256 checksums ─────────────────────────────────────────
+      - name: Generate SHA-256 checksums
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd dist
+          sha256sum * | tee "../checksums-${VERSION}.sha256"
+          cd ..
+          echo "Checksums:"
+          cat "checksums-${VERSION}.sha256"
+
+      # ── Extract release notes from CHANGELOG.md ───────────────────────────
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TAG:     ${{ steps.version.outputs.tag }}
+        run: |
+          NOTES=$(python3 - <<'PYEOF'
+          import re, os, sys
+
+          version = os.environ.get("RELEASE_VERSION", "")
+          tag     = os.environ.get("RELEASE_TAG", "")
+
+          try:
+              content = open("CHANGELOG.md").read()
+          except FileNotFoundError:
+              print("No CHANGELOG.md found.")
+              sys.exit(0)
+
+          sections = re.split(r"\n(?=## )", content)
+          target = next(
+              (s for s in sections
+               if version in s.split("\n")[0] or tag in s.split("\n")[0]),
+              None,
+          )
+          if target:
+              body = "\n".join(target.split("\n")[1:]).strip()
+              print(body if body else "No details in CHANGELOG for this version.")
+          else:
+              print(f"See CHANGELOG.md for details on {tag}.")
+          PYEOF
+          )
+
+          {
+            echo "notes<<RELEASE_NOTES_DELIMITER"
+            echo "$NOTES"
+            echo "RELEASE_NOTES_DELIMITER"
+          } >> "$GITHUB_OUTPUT"
+
+      # ── Create or update the GitHub release ───────────────────────────────
+      - name: Create GitHub release
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          PRERELEASE="${{ steps.version.outputs.prerelease }}"
+          TITLE="Release ${TAG}"
+          NOTES="${{ steps.notes.outputs.notes }}"
+
+          PR_FLAG=""
+          [ "$PRERELEASE" = "true" ] && PR_FLAG="--prerelease"
+
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Release $TAG already exists — updating notes."
+            gh release edit "$TAG" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              $PR_FLAG \
+              --latest
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              --verify-tag \
+              $PR_FLAG \
+              --latest
+          fi
+
+      # ── Upload distribution artifacts and checksums as release assets ─────
+      - name: Upload release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          gh release upload "$TAG" \
+            dist/* \
+            "checksums-${VERSION}.sha256" \
+            --clobber
+
+      # ── Job summary ───────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          RELEASE_URL=$(gh release view "$TAG" --json url -q .url 2>/dev/null || echo "N/A")
+
+          {
+            echo "## GitHub Release: ${TAG:-unknown}"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Tag | \`${TAG}\` |"
+            echo "| Version | \`${VERSION}\` |"
+            echo "| Pre-release | \`${{ steps.version.outputs.prerelease }}\` |"
+            echo "| Release URL | ${RELEASE_URL} |"
+            echo ""
+            echo "### Artifacts"
+            echo "\`\`\`"
+            [ -d dist ] && ls -lh dist/ || echo "dist/ not found — build may have failed"
+            [ -f "checksums-${VERSION}.sha256" ] && cat "checksums-${VERSION}.sha256" || echo "checksums file not found"
+            echo "\`\`\`"
+            echo ""
+            echo "### Release Notes"
+            echo "${{ steps.notes.outputs.notes }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,215 @@
+name: Semantic Versioning
+
+# Responsibilities:
+#   1. Analyses conventional commits since the last tag
+#   2. Bumps version in pyproject.toml + visionkit/__init__.py
+#   3. Updates CHANGELOG.md
+#   4. Commits + pushes the bump commit and the vX.Y.Z annotated tag
+#   5. Explicitly calls downstream release and publish jobs
+#
+# NOTE: GITHUB_TOKEN-authenticated tag pushes do NOT trigger other workflow runs.
+# Downstream jobs are therefore called explicitly via `uses:` instead of relying
+# on the tag push event. reusable-github-release.yml retains its tag-push trigger
+# for manually created tags only.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type (auto = analyse conventional commits)"
+        required: false
+        default: auto
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+
+# Prevent concurrent release jobs; never cancel an in-progress one
+concurrency:
+  group: semantic-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Cut Release
+    runs-on: ubuntu-latest
+
+    # Skip when the triggering commit is itself a release bump to prevent loops.
+    # workflow_dispatch always runs (head_commit is null for manual triggers).
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      !startsWith(github.event.head_commit.message, 'chore(release):')
+
+    permissions:
+      contents: write   # push commits, tags, create releases
+
+    outputs:
+      released: ${{ steps.bump.outputs.released }}
+      version:  ${{ steps.bump.outputs.version }}
+      tag:      ${{ steps.bump.outputs.tag }}
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────────────────
+      - name: Check out repository (full history for changelog)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Toolchain ──────────────────────────────────────────────────────────
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      # ── Git identity (required for cz bump to commit) ──────────────────────
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ── Bootstrap: create initial semver tag if none exist ─────────────────
+      # cz bump requires at least one vX.Y.Z tag to determine what commits
+      # to analyse. Without it the dry-run fails and no release is created.
+      - name: Bootstrap initial semver tag if none exist
+        run: |
+          if git tag --list | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Semver tags found — no bootstrap needed."
+            exit 0
+          fi
+          INIT_VERSION=$(grep -A5 '^\[tool\.commitizen\]' pyproject.toml \
+            | grep '^version' | head -1 | sed 's/version = "\(.*\)"/\1/')
+          FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+          echo "Bootstrapping v${INIT_VERSION} at first commit ${FIRST_COMMIT}."
+          git tag -a "v${INIT_VERSION}" "$FIRST_COMMIT" \
+            -m "chore(release): bootstrap initial version v${INIT_VERSION}"
+
+      # ── Version bump ───────────────────────────────────────────────────────
+      - name: Bump version and generate changelog
+        id: bump
+        run: |
+          BUMP_INPUT="${{ inputs.bump }}"
+
+          if [ "$BUMP_INPUT" = "major" ] || [ "$BUMP_INPUT" = "minor" ] || [ "$BUMP_INPUT" = "patch" ]; then
+            echo "Forced bump: ${BUMP_INPUT}"
+            uv run cz bump \
+              --increment "$(echo "$BUMP_INPUT" | tr '[:lower:]' '[:upper:]')" \
+              --yes
+          else
+            echo "Auto bump: analysing commits since last tag..."
+            # cz bump --dry-run launches a prompt_toolkit TUI which raises EOFError
+            # in non-TTY CI environments. Use git log directly instead.
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LAST_TAG" ]; then
+              COMMIT_RANGE="${LAST_TAG}..HEAD"
+            else
+              COMMIT_RANGE="HEAD"
+            fi
+            RELEASABLE=$(git log "$COMMIT_RANGE" --pretty=format:"%s" \
+              | grep -cE "^(feat|fix|perf|refactor)(\(.+\))?(!)?: |^BREAKING CHANGE:" || true)
+            if [ "$RELEASABLE" -eq 0 ]; then
+              echo "released=false" >> "$GITHUB_OUTPUT"
+              echo "No releasable commits since last tag. Skipping release."
+              exit 0
+            fi
+            uv run cz bump --yes
+          fi
+
+          VERSION=$(uv run cz version --project)
+          echo "released=true"      >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}"    >> "$GITHUB_OUTPUT"
+          echo "Bumped to: v${VERSION}"
+
+      # ── Push commit + tag ──────────────────────────────────────────────────
+      - name: Push version commit and tag
+        if: steps.bump.outputs.released == 'true'
+        run: |
+          git push origin HEAD:master
+          git push origin "refs/tags/${{ steps.bump.outputs.tag }}"
+
+      # ── Summary ────────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          if [ "${{ steps.bump.outputs.released }}" = "true" ]; then
+            {
+              echo "## Version bumped: ${{ steps.bump.outputs.tag }}"
+              echo ""
+              echo "| Step | Status |"
+              echo "|------|--------|"
+              echo "| Version bump commit | pushed to \`master\` |"
+              echo "| Git tag | \`${{ steps.bump.outputs.tag }}\` pushed |"
+              echo "| GitHub release | → **github-release** job below |"
+              echo "| PyPI publish | → **publish-pypi** job below |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## No release"
+              echo "No releasable conventional commits found since the last tag."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # ── GitHub Release ──────────────────────────────────────────────────────────
+  # Called explicitly because GITHUB_TOKEN tag pushes don't trigger new runs.
+  github-release:
+    name: Create GitHub Release
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-github-release.yml
+    with:
+      tag:            ${{ needs.release.outputs.tag }}
+      python-version: "3.11"
+      prerelease:     false
+
+  # ── PyPI Publish ────────────────────────────────────────────────────────────
+  # Inlined (not reusable workflow) because PyPI trusted publishing does not
+  # support reusable workflows — the job_workflow_ref must equal the calling
+  # workflow ref for the OIDC claim to match the configured trusted publisher.
+  publish-pypi:
+    name: Publish to PyPI
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/visionkit/
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out repository at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          fetch-tags: true
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Build distributions (sdist + wheel)
+        run: uv build
+
+      - name: Validate distributions with twine
+        run: |
+          uv tool install twine
+          uv tool run twine check dist/*
+
+      - name: Publish to PyPI (trusted publisher / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
