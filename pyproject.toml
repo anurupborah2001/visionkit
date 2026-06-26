@@ -50,6 +50,11 @@ dev = [
     "twine>=6.2.0",
 ]
 
+[tool.hatch.build]
+exclude = [
+    "visionkit/lib/models/",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["visionkit"]
 
