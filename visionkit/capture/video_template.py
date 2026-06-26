@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 import cv2
-import pyautogui
 
 from visionkit.capture.video_recorder import VideoRecorder
 from visionkit.lib.fps_counter import FPSCounter
@@ -277,6 +276,8 @@ def video_capture_template(
             cv2.imshow(window_name, frame)
 
             if center_window and not window_centered and first_frame_rendered:
+                import pyautogui  # noqa: PLC0415 — lazy: avoid DISPLAY crash on headless systems
+
                 screen_width, screen_height = pyautogui.size()
                 x = (screen_width - frame_width) // 2
                 y = (screen_height - frame_height) // 2

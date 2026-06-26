@@ -285,7 +285,7 @@ class TestVideoCaptureTemplateUnit:
             patch("visionkit.capture.video_template.cv2.waitKey", return_value=27),
             patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
             patch(
-                "visionkit.capture.video_template.pyautogui.size",
+                "pyautogui.size",
                 return_value=(1920, 1080),
             ),
         ):
