@@ -1,7 +1,12 @@
+from pathlib import Path
+
 import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "face_detector.tflite")
 
 
 class FaceDetector:
@@ -11,7 +16,7 @@ class FaceDetector:
 
     def __init__(
         self,
-        model_path: str = "./models/face_detector.tflite",
+        model_path: str = _DEFAULT_MODEL,
         max_faces=5,
         running_mode="IMAGE",  # IMAGE | VIDEO | LIVE_STREAM
         min_detection_confidence: float = 0.5,

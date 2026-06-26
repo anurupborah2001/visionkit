@@ -1,5 +1,6 @@
 import math
 import time
+from pathlib import Path
 
 import cv2
 import mediapipe as mp
@@ -11,11 +12,14 @@ from mediapipe.tasks.python.vision.core.vision_task_running_mode import (
 )
 from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
 
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "pose_landmarker.task")
+
 
 class PoseDetector:
     def __init__(
         self,
-        model_path: str = "./models/pose_landmarker.task",
+        model_path: str = _DEFAULT_MODEL,
         running_mode: VisionTaskRunningMode = vision.RunningMode.VIDEO,
         num_poses: int = 1,
         min_pose_detection_confidence: float = 0.5,

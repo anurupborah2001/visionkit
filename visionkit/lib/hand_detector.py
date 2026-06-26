@@ -2,6 +2,7 @@ import math
 import time
 from collections import deque
 from itertools import combinations
+from pathlib import Path
 
 import cv2
 import mediapipe as mp
@@ -11,12 +12,15 @@ from mediapipe.tasks.python import vision
 
 cap = cv2.VideoCapture(0)
 
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "hand_landmarker.task")
+
 
 # There are 21 hand landmarks in total, and the tips of the fingers are represented by the following landmark indices: 4 (thumb), 8 (index finger), 12 (middle finger), 16 (ring finger), and 20 (little finger). These indices correspond to the specific landmarks that represent the tips of each finger in the hand landmark detection model. By accessing these landmarks, you can determine the position and state of each finger for various applications such as gesture recognition or hand tracking.
 class HandDetector:
     def __init__(
         self,
-        model_path="./models/hand_landmarker.task",
+        model_path=_DEFAULT_MODEL,
         running_mode="IMAGE",
         max_hands=2,
         detection_confidence=0.5,

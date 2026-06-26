@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 
 import cv2
 import mediapipe as mp
@@ -14,6 +15,9 @@ from mediapipe.tasks.python.vision.face_landmarker import (
     FaceLandmarker,
     FaceLandmarkerOptions,
 )
+
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "face_landmarker_v2_with_blendshapes.task")
 
 
 class FaceMeshDetector:
@@ -127,7 +131,7 @@ class FaceMeshDetector:
 
     def __init__(
         self,
-        model_path="./models/face_landmarker_v2_with_blendshapes.task",
+        model_path=_DEFAULT_MODEL,
         num_faces: int = 2,
         min_face_detection_confidence: float = 0.5,
         min_face_presence_confidence: float = 0.5,

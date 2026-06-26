@@ -1,14 +1,19 @@
+from pathlib import Path
+
 import cv2
 import mediapipe as mp
 import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "efficientdet_lite.tflite")
+
 
 class ObjectDetector:
     def __init__(
         self,
-        model_path: str = "./models/efficientdet_lite.tflite",
+        model_path: str = _DEFAULT_MODEL,
         max_results=5,
         running_mode="IMAGE",
         display_names_locale=b"en",

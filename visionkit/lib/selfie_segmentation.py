@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -7,11 +9,14 @@ from mediapipe.tasks.python.vision.core.vision_task_running_mode import (
     VisionTaskRunningMode,
 )
 
+_MODEL_DIR = Path(__file__).parent / "models"
+_DEFAULT_MODEL = str(_MODEL_DIR / "deeplab_v3.tflite")
+
 
 class SelfieSegmentation:
     def __init__(
         self,
-        model_path: str = "./models/deeplab_v3.tflite",
+        model_path: str = _DEFAULT_MODEL,
         output_category_mask: bool = True,
         output_confidence_masks: bool = False,
         running_mode: VisionTaskRunningMode = VisionTaskRunningMode.IMAGE,
