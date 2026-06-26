@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN || github.token }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -55,7 +55,7 @@ jobs:
       - name: Run python-semantic-release
         id: release
         env:
-          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN || github.token }}
         run: |
           # --vcs-release creates the GitHub Release + attaches build artifacts
           uv run semantic-release version --vcs-release
@@ -79,7 +79,7 @@ jobs:
       - name: Dispatch publish workflow
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          github-token: ${{ secrets.SEMANTIC_RELEASE_TOKEN || github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
