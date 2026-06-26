@@ -1,11 +1,13 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
-import pytest
-from visionkit.lib.hair_segmentation import HairSegmentation
 from conftest import blank_bgr
+
+from visionkit.lib.hair_segmentation import HairSegmentation
 
 
 def det():
@@ -37,13 +39,13 @@ def test_get_hair_top_position():
 
 def test_detect_hair_length_short():
     d = det()
-    patch_hair_mask(d, top=20, bottom=50)   # h=30 / img_h=300 = 10%
+    patch_hair_mask(d, top=20, bottom=50)  # h=30 / img_h=300 = 10%
     assert d.detect_hair_length_estimate(blank_bgr()) == "short"
 
 
 def test_detect_hair_length_medium():
     d = det()
-    patch_hair_mask(d, top=0, bottom=70)   # h=70 / 300 = 23%
+    patch_hair_mask(d, top=0, bottom=70)  # h=70 / 300 = 23%
     assert d.detect_hair_length_estimate(blank_bgr()) == "medium"
 
 

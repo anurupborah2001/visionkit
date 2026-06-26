@@ -1,90 +1,106 @@
 import cv2
-import numpy as np
 import mediapipe as mp
+import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
 
 class ObjectDetector:
     def __init__(
         self,
-        model_path: str = './models/efficientdet_lite.tflite', 
-        max_results=5, 
-        running_mode="IMAGE", 
+        model_path: str = "./models/efficientdet_lite.tflite",
+        max_results=5,
+        running_mode="IMAGE",
         display_names_locale=b"en",
         category_allowlist=None,
-        category_denylist=None):
+        category_denylist=None,
+    ):
         self.running_mode = getattr(vision.RunningMode, running_mode)
-        base_options = python.BaseOptions(
-            model_asset_path=model_path)
+        base_options = python.BaseOptions(model_asset_path=model_path)
         options = vision.ObjectDetectorOptions(
-            base_options=base_options,         
+            base_options=base_options,
             score_threshold=0.5,
             max_results=max_results,
             running_mode=self.running_mode,
             display_names_locale=display_names_locale,
             category_allowlist=category_allowlist,
-            category_denylist=category_denylist)
+            category_denylist=category_denylist,
+        )
         self.detector = vision.ObjectDetector.create_from_options(options)
-        self.MARGIN = 15 
+        self.MARGIN = 15
         self.FONT_THICKNESS = 2
         self.ROW_SIZE = 10
-        self.TEXT_COLOR = (0, 255, 0) 
+        self.TEXT_COLOR = (0, 255, 0)
         self.FONT_SIZE = 1
 
-
     def _to_mp_image(self, image):
-      """
-      Convert a BGR image (as used by OpenCV) to an mp.Image format suitable for MediaPipe processing.
-      Args:
-        image: The input image in BGR format (as used by OpenCV).
-      Returns:
-        An mp.Image object in RGB format suitable for MediaPipe processing.
-      """
-      rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-      return mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        
-    def detect(self, image, timestamp_ms=None):
-      """
-      Detect objects in the given image using the MediaPipe Object Detector.
-      Args:
-        image: The input image in BGR format (as used by OpenCV).
-        timestamp_ms: Optional timestamp in milliseconds for video processing (ignored in IMAGE mode).
-      Returns:
-        A list of detected objects with their bounding boxes and labels.
-      """
-      rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-      mp_image = self._to_mp_image(rgb)
-      if self.running_mode == vision.RunningMode.IMAGE:
-        result = self.detector.detect(mp_image)
-      else:
-        result = self.detector.detect_for_video(mp_image, timestamp_ms or 0)
-      return result, mp_image
-    
-    def visualize_detections(self, image, detection_result):
-      """
-      Visualize detected objects on the image using MediaPipe's visualization utilities.
-      Args:
-        image: The input image in BGR format (as used by OpenCV).
-        detection_result: The result from the detect method containing detected objects.
-      Returns:
-        An annotated image with detected objects visualized.
-      """
-      for detection in detection_result.detections:
-          bbox = detection.bounding_box
-          category = detection.categories[0] if detection.categories else None
-          label = category.category_name if category else "Unknown"
-          score = category.score if category else 0.0
+        """
+        Convert a BGR image (as used by OpenCV) to an mp.Image format suitable for MediaPipe processing.
+        Args:
+          image: The input image in BGR format (as used by OpenCV).
+        Returns:
+          An mp.Image object in RGB format suitable for MediaPipe processing.
+        """
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
 
-          start_point = (int(bbox.origin_x), int(bbox.origin_y))
-          end_point = (int(bbox.origin_x + bbox.width), int(bbox.origin_y + bbox.height))
-          
-          cv2.rectangle(image, start_point, end_point, self.TEXT_COLOR, self.FONT_THICKNESS)
-          text = f"{label}: {score:.2f}"
-          text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, self.FONT_SIZE, self.FONT_THICKNESS)
-          text_origin = (start_point[0], start_point[1] + self.MARGIN)
-          cv2.putText(image, text, text_origin, cv2.FONT_HERSHEY_SIMPLEX, self.FONT_SIZE, self.TEXT_COLOR, self.FONT_THICKNESS)
-      return image
-    
+    def detect(self, image, timestamp_ms=None):
+        """
+        Detect objects in the given image using the MediaPipe Object Detector.
+        Args:
+          image: The input image in BGR format (as used by OpenCV).
+          timestamp_ms: Optional timestamp in milliseconds for video processing (ignored in IMAGE mode).
+        Returns:
+          A list of detected objects with their bounding boxes and labels.
+        """
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        mp_image = self._to_mp_image(rgb)
+        if self.running_mode == vision.RunningMode.IMAGE:
+            result = self.detector.detect(mp_image)
+        else:
+            result = self.detector.detect_for_video(mp_image, timestamp_ms or 0)
+        return result, mp_image
+
+    def visualize_detections(self, image, detection_result):
+        """
+        Visualize detected objects on the image using MediaPipe's visualization utilities.
+        Args:
+          image: The input image in BGR format (as used by OpenCV).
+          detection_result: The result from the detect method containing detected objects.
+        Returns:
+          An annotated image with detected objects visualized.
+        """
+        for detection in detection_result.detections:
+            bbox = detection.bounding_box
+            category = detection.categories[0] if detection.categories else None
+            label = category.category_name if category else "Unknown"
+            score = category.score if category else 0.0
+
+            start_point = (int(bbox.origin_x), int(bbox.origin_y))
+            end_point = (
+                int(bbox.origin_x + bbox.width),
+                int(bbox.origin_y + bbox.height),
+            )
+
+            cv2.rectangle(
+                image, start_point, end_point, self.TEXT_COLOR, self.FONT_THICKNESS
+            )
+            text = f"{label}: {score:.2f}"
+            text_size, _ = cv2.getTextSize(
+                text, cv2.FONT_HERSHEY_SIMPLEX, self.FONT_SIZE, self.FONT_THICKNESS
+            )
+            text_origin = (start_point[0], start_point[1] + self.MARGIN)
+            cv2.putText(
+                image,
+                text,
+                text_origin,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.FONT_SIZE,
+                self.TEXT_COLOR,
+                self.FONT_THICKNESS,
+            )
+        return image
+
     def detect_objects(self, image, timestamp_ms=None):
         detection_result, mp_image = self.detect(image, timestamp_ms=timestamp_ms)
         image_copy = np.copy(mp_image.numpy_view())
@@ -106,7 +122,8 @@ class ObjectDetector:
             return len(detection_result.detections)
         label_lower = label.lower()
         return sum(
-            1 for d in detection_result.detections
+            1
+            for d in detection_result.detections
             if d.categories and d.categories[0].category_name.lower() == label_lower
         )
 
@@ -121,7 +138,8 @@ class ObjectDetector:
         """
         allowed = {c.lower() for c in allowed_classes}
         return [
-            d for d in detection_result.detections
+            d
+            for d in detection_result.detections
             if d.categories and d.categories[0].category_name.lower() in allowed
         ]
 
@@ -137,7 +155,7 @@ class ObjectDetector:
             return None
         return max(
             detection_result.detections,
-            key=lambda d: d.bounding_box.width * d.bounding_box.height
+            key=lambda d: d.bounding_box.width * d.bounding_box.height,
         )
 
     def is_object_in_zone(self, detection, zone_rect):
@@ -175,7 +193,9 @@ class ObjectDetector:
             results.append({"label": label, "score": score, "center": (cx, cy)})
         return results
 
-    def draw_zone(self, image, zone_rect, color=(0, 255, 255), label="Zone", thickness=2):
+    def draw_zone(
+        self, image, zone_rect, color=(0, 255, 255), label="Zone", thickness=2
+    ):
         """Draw a named rectangular detection zone on the image.
 
         Args:
@@ -190,8 +210,16 @@ class ObjectDetector:
         out = image.copy()
         x, y, w, h = zone_rect
         cv2.rectangle(out, (x, y), (x + w, y + h), color, thickness)
-        cv2.putText(out, label, (x, max(0, y - 8)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2, cv2.LINE_AA)
+        cv2.putText(
+            out,
+            label,
+            (x, max(0, y - 8)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            color,
+            2,
+            cv2.LINE_AA,
+        )
         return out
 
     def get_class_summary(self, detection_result):
@@ -220,7 +248,8 @@ class ObjectDetector:
           List of Detection objects.
         """
         return [
-            d for d in detection_result.detections
+            d
+            for d in detection_result.detections
             if d.categories and d.categories[0].score >= threshold
         ]
 
@@ -235,13 +264,19 @@ class ObjectDetector:
         boxes = []
         for detection in detection_result.detections:
             bb = detection.bounding_box
-            label = detection.categories[0].category_name if detection.categories else "unknown"
+            label = (
+                detection.categories[0].category_name
+                if detection.categories
+                else "unknown"
+            )
             score = detection.categories[0].score if detection.categories else 0.0
-            boxes.append({
-                "label": label,
-                "score": score,
-                "bbox": (bb.origin_x, bb.origin_y, bb.width, bb.height),
-            })
+            boxes.append(
+                {
+                    "label": label,
+                    "score": score,
+                    "bbox": (bb.origin_x, bb.origin_y, bb.width, bb.height),
+                }
+            )
         return boxes
 
     def is_crowded(self, detection_result, threshold=5):
@@ -285,8 +320,9 @@ class ObjectDetector:
         cy_b = bb_b.origin_y + bb_b.height / 2
         return float(((cx_a - cx_b) ** 2 + (cy_a - cy_b) ** 2) ** 0.5)
 
-    def detect_line_crossing(self, detection_result, line_start, line_end,
-                             line_threshold=10):
+    def detect_line_crossing(
+        self, detection_result, line_start, line_end, line_threshold=10
+    ):
         """Return detections whose center is within line_threshold pixels of the line segment.
 
         Useful for virtual tripwire / counting lines.
@@ -311,11 +347,15 @@ class ObjectDetector:
             if line_len == 0:
                 dist = float(np.linalg.norm(p - p1))
             else:
-                t = float(np.clip(np.dot(p - p1, p2 - p1) / (line_len ** 2), 0, 1))
+                t = float(np.clip(np.dot(p - p1, p2 - p1) / (line_len**2), 0, 1))
                 proj = p1 + t * (p2 - p1)
                 dist = float(np.linalg.norm(p - proj))
             if dist <= line_threshold:
-                label = detection.categories[0].category_name if detection.categories else "unknown"
+                label = (
+                    detection.categories[0].category_name
+                    if detection.categories
+                    else "unknown"
+                )
                 crossing.append({"label": label, "center": (cx, cy), "distance": dist})
         return crossing
 
@@ -330,7 +370,9 @@ class ObjectDetector:
         return {
             "detections": [
                 {
-                    "label": d.categories[0].category_name if d.categories else "unknown",
+                    "label": (
+                        d.categories[0].category_name if d.categories else "unknown"
+                    ),
                     "score": d.categories[0].score if d.categories else 0.0,
                     "bbox": {
                         "x": d.bounding_box.origin_x,

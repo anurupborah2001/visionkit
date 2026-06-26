@@ -1,6 +1,5 @@
 # tests/conftest.py
 import numpy as np
-import pytest
 
 
 def blank_bgr(h=300, w=400):
@@ -21,10 +20,16 @@ def make_face_detection(score=0.9, x=100, y=80, w=80, h=90):
 
 def make_blend(**kwargs):
     base = {
-        "mouthSmileLeft": 0.0, "mouthSmileRight": 0.0,
-        "browInnerUp": 0.0, "browDownLeft": 0.0, "browDownRight": 0.0,
-        "eyeBlinkLeft": 0.0, "eyeBlinkRight": 0.0, "jawOpen": 0.0,
-        "mouthFrownLeft": 0.0, "mouthFrownRight": 0.0,
+        "mouthSmileLeft": 0.0,
+        "mouthSmileRight": 0.0,
+        "browInnerUp": 0.0,
+        "browDownLeft": 0.0,
+        "browDownRight": 0.0,
+        "eyeBlinkLeft": 0.0,
+        "eyeBlinkRight": 0.0,
+        "jawOpen": 0.0,
+        "mouthFrownLeft": 0.0,
+        "mouthFrownRight": 0.0,
     }
     base.update(kwargs)
     return base
@@ -34,8 +39,10 @@ def make_face_478(img_w=640, img_h=480):
     """478 landmarks as [[x_px, y_px]] centered on image."""
     rng = np.random.default_rng(42)
     return [
-        [img_w // 2 + int(rng.integers(-120, 120)),
-         img_h // 2 + int(rng.integers(-120, 120))]
+        [
+            img_w // 2 + int(rng.integers(-120, 120)),
+            img_h // 2 + int(rng.integers(-120, 120)),
+        ]
         for _ in range(478)
     ]
 
@@ -60,10 +67,7 @@ class MockLandmark:
 
 class MockPoseResult:
     def __init__(self, landmarks=None):
-        if landmarks is None:
-            lms = [MockLandmark() for _ in range(33)]
-        else:
-            lms = landmarks
+        lms = [MockLandmark() for _ in range(33)] if landmarks is None else landmarks
         self.pose_landmarks = [lms]
 
 

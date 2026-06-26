@@ -1,0 +1,101 @@
+default_language_version:
+  python: python3.11
+
+repos:
+  # ── Standard pre-commit hooks ──────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=200000"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: debug-statements
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+
+  # ── isort — import sorter (black-compatible profile) ─────────────────────
+  - repo: https://github.com/PyCQA/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  # ── pyupgrade — modernise Python syntax ──────────────────────────────────
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: ["--py311-plus"]
+
+  # ── Ruff — fast linter + auto-fix ─────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.12
+    hooks:
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+      - id: ruff-format
+
+  # ── Flake8 — style / error linter ─────────────────────────────────────────
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.2.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-bugbear
+          - flake8-comprehensions
+          - flake8-simplify
+        args:
+          - "--max-line-length=88"     # match Black
+          - "--extend-ignore=E203,W503,E501"
+
+  # ── Docker lint ────────────────────────────────────────────────────────────
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.12.1b3
+    hooks:
+      - id: hadolint
+        name: Dockerfile lint (hadolint)
+
+  # ── Conventional commits ───────────────────────────────────────────────────
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - perf
+          - test
+          - build
+          - ci
+          - chore
+          - revert
+
+  # ── actionlint — GitHub Actions workflow linter ───────────────────────────
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  # ── Local: pytest (fast unit-test smoke check) ────────────────────────────
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest (smoke check)
+        entry: uv run pytest tests/ -x -q --tb=short
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

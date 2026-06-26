@@ -1,11 +1,13 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
-import pytest
-from visionkit.lib.selfie_segmentation import SelfieSegmentation
 from conftest import blank_bgr
+
+from visionkit.lib.selfie_segmentation import SelfieSegmentation
 
 
 def det():
@@ -63,9 +65,9 @@ def test_create_green_screen_background_is_green():
     result = d.create_green_screen(img)
     assert result.shape == img.shape
     # Top-left corner is background -> should be green
-    assert result[0, 0, 1] == 255   # G channel
-    assert result[0, 0, 0] == 0     # B channel
-    assert result[0, 0, 2] == 0     # R channel
+    assert result[0, 0, 1] == 255  # G channel
+    assert result[0, 0, 0] == 0  # B channel
+    assert result[0, 0, 2] == 0  # R channel
 
 
 def test_extract_foreground_on_white_background_is_white():

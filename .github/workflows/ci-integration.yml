@@ -1,0 +1,86 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      skip_model_download:
+        description: "Skip model download (run inference-free integration tests only)"
+        required: false
+        default: "false"
+        type: boolean
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: pytest integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies (Tesseract)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+      - name: Install project dependencies
+        run: uv sync --all-groups
+
+      # ── Model files ──────────────────────────────────────────────────────
+      # Models are NOT committed to git (binary, large, user-provided).
+      # Store each .tflite/.task file as a GitHub Actions secret (base64)
+      # or upload them to a private artifact store and cache them here.
+      #
+      # Example: add secret FACE_DETECTION_MODEL_B64 = base64-encoded .tflite
+      # and uncomment the block below.
+      #
+      # - name: Restore model files
+      #   env:
+      #     FACE_DETECTION_MODEL_B64: ${{ secrets.FACE_DETECTION_MODEL_B64 }}
+      #   run: |
+      #     mkdir -p models
+      #     echo "$FACE_DETECTION_MODEL_B64" | base64 -d > models/face_detection.tflite
+
+      - name: Cache model files
+        id: cache-models
+        uses: actions/cache@v4
+        with:
+          path: models/
+          key: visionkit-models-${{ hashFiles('pyproject.toml') }}
+
+      - name: Run integration tests
+        env:
+          VISIONKIT_MODELS_DIR: ${{ github.workspace }}/models
+        run: |
+          uv run pytest tests/ \
+            -m "integration" \
+            --tb=short \
+            -v
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            .pytest_cache/
+          retention-days: 7

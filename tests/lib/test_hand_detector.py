@@ -1,12 +1,14 @@
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import json
-import numpy as np
-import pytest
+
+from conftest import blank_bgr, make_hand_landmarks
+
 from visionkit.lib.hand_detector import HandDetector
-from conftest import make_hand_landmarks, blank_bgr
 
 
 def det():
@@ -70,8 +72,8 @@ def test_recognize_number_delegates(monkeypatch):
 def make_oriented_landmarks(direction="up"):
     lms = [[i, 0.5, 0.5, 0.0] for i in range(21)]
     if direction == "up":
-        lms[0][1], lms[0][2] = 0.5, 0.8   # wrist low
-        lms[9][1], lms[9][2] = 0.5, 0.2   # MCP high
+        lms[0][1], lms[0][2] = 0.5, 0.8  # wrist low
+        lms[9][1], lms[9][2] = 0.5, 0.2  # MCP high
     elif direction == "right":
         lms[0][1], lms[0][2] = 0.2, 0.5
         lms[9][1], lms[9][2] = 0.8, 0.5
@@ -108,8 +110,7 @@ def test_get_swipe_direction_none_below_threshold():
 def test_get_all_finger_angles_has_five_keys(monkeypatch):
     d = det()
     lms = make_hand_landmarks()
-    monkeypatch.setattr(d, "get_angle_between_landmarks",
-                        lambda lm, a, b, c: 90.0)
+    monkeypatch.setattr(d, "get_angle_between_landmarks", lambda lm, a, b, c: 90.0)
     angles = d.get_all_finger_angles(lms)
     assert set(angles.keys()) == {"thumb", "index", "middle", "ring", "little"}
 

@@ -1,0 +1,135 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Publish target"
+        required: true
+        default: testpypi
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+  id-token: write  # required for PyPI Trusted Publishing (OIDC)
+
+jobs:
+  # ── 1. Unit test gate ─────────────────────────────────────────────────────
+  test:
+    name: Unit tests (pre-publish gate)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run unit tests
+        run: uv run pytest tests/ -m "not integration" -q
+
+  # ── 2. Build sdist + wheel ────────────────────────────────────────────────
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Verify build artifacts
+        run: |
+          ls -lh dist/
+          uv run python -m twine check dist/*
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ── 3. Publish to TestPyPI (pre-releases + manual) ────────────────────────
+  publish-testpypi:
+    name: Publish → TestPyPI
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/visionkit
+
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi') ||
+      (github.event_name == 'release' && github.event.release.prerelease == true)
+
+    steps:
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          print-hash: true
+
+  # ── 4. Publish to PyPI (stable releases + manual) ────────────────────────
+  publish-pypi:
+    name: Publish → PyPI
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: pypi
+      url: https://pypi.org/p/visionkit
+
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi') ||
+      (github.event_name == 'release' && github.event.release.prerelease == false)
+
+    steps:
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
