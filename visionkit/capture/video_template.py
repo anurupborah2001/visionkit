@@ -276,12 +276,15 @@ def video_capture_template(
             cv2.imshow(window_name, frame)
 
             if center_window and not window_centered and first_frame_rendered:
-                import pyautogui  # noqa: PLC0415 — lazy: avoid DISPLAY crash on headless systems
+                try:
+                    import pyautogui  # noqa: PLC0415
 
-                screen_width, screen_height = pyautogui.size()
-                x = (screen_width - frame_width) // 2
-                y = (screen_height - frame_height) // 2
-                cv2.moveWindow(window_name, x, y)
+                    screen_width, screen_height = pyautogui.size()
+                    x = (screen_width - frame_width) // 2
+                    y = (screen_height - frame_height) // 2
+                    cv2.moveWindow(window_name, x, y)
+                except Exception:
+                    pass  # headless / no display — skip centering
                 window_centered = True
 
             first_frame_rendered = True

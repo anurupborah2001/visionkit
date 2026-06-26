@@ -284,14 +284,11 @@ class TestVideoCaptureTemplateUnit:
             patch("visionkit.capture.video_template.cv2.imshow"),
             patch("visionkit.capture.video_template.cv2.waitKey", return_value=27),
             patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
-            patch(
-                "pyautogui.size",
-                return_value=(1920, 1080),
-            ),
         ):
             video_capture_template(
                 video_source=0,
                 show_window=True,
+                center_window=False,
                 draw_fps=False,
                 loop_forever=False,
                 mouse_callback=cb,

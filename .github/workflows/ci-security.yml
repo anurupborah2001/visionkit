@@ -38,24 +38,19 @@ jobs:
       - name: Install project dependencies
         run: uv sync --all-groups
 
-      - name: Export requirements for pip-audit
-        run: uv export --format requirements-txt --no-hashes > /tmp/requirements-all.txt
-
-      - name: Run pip-audit
+      - name: Run pip-audit (SBOM)
         run: |
           uv run pip-audit \
-            --requirement /tmp/requirements-all.txt \
+            --local \
             --format cyclonedx-json \
             --output pip-audit-sbom.json \
-            --progress-spinner off \
-            --no-deps || true
+            --progress-spinner off || true
 
       - name: Run pip-audit (fail on critical)
         run: |
           uv run pip-audit \
-            --requirement /tmp/requirements-all.txt \
-            --progress-spinner off \
-            --no-deps
+            --local \
+            --progress-spinner off
 
       - name: Upload SBOM artifact
         if: always()
