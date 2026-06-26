@@ -65,6 +65,7 @@ class HandDetector:
         self.wrist = 0
         self.finger_mcp = [2, 5, 9, 13, 17]
         self.distance_history = deque(maxlen=smoothing_window)
+        self._lm_list = []  # cached landmarks_list from last get_landmarks call
         if calibration_samples:
             self.fit_polynomial(calibration_samples)
 
@@ -269,6 +270,9 @@ class HandDetector:
                         else hand_label
                     )
 
+            if idx == 0:
+                self._lm_list = landmarks_list
+
             all_hands.append(
                 {
                     "landmarks_list": landmarks_list,
@@ -366,16 +370,18 @@ class HandDetector:
 
         return distance
 
-    def fingers_up(self, hand_landmarks):
+    def fingers_up(self, hand_landmarks=None):
         """
         Determine which fingers are raised (up) based on the detected hand landmarks. The function analyzes the positions of the landmarks for each finger and compares them to determine if a finger is raised or not.
 
         Args:
-          hand_landmarks (list): A list of landmarks for a detected hand, where each landmark contains x, y, z coordinates normalized to the image dimensions. The landmarks are typically indexed according to the
+          hand_landmarks (list, optional): A list of landmarks for a detected hand, where each landmark contains x, y, z coordinates normalized to the image dimensions. Defaults to the cached landmarks from the last get_landmarks() call.
 
         Returns:
           fingers (list): A list of integers representing the state of each finger, where 1 indicates that the finger is raised (up) and 0 indicates that it is not raised (down). The order of the fingers in the list corresponds to the thumb, index, middle, ring, and little fingers.
         """
+        if hand_landmarks is None:
+            hand_landmarks = self._lm_list
         fingers = []
         # Thumb
         # We need to calculate thumb separately because it moves in a different plane compared to the other fingers.
@@ -1179,7 +1185,6 @@ def main():
         cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
 
         taps = handDetector.detect_finger_tapping()
-        handDetector.fingers_up()
         handDetector.count_fingers()
 
         # Example prints (you can replace with your own logic)
