@@ -151,7 +151,7 @@ jobs:
               echo "| Version bump commit | pushed to \`master\` |"
               echo "| Git tag | \`${{ steps.bump.outputs.tag }}\` pushed |"
               echo "| GitHub release | → **github-release** job below |"
-              echo "| PyPI publish | → **publish.yml** dispatched at tag |"
+              echo "| PyPI publish | → **publish-pypi** job below |"
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
@@ -175,27 +175,41 @@ jobs:
       prerelease:     false
 
   # ── PyPI Publish ────────────────────────────────────────────────────────────
-  # Dispatched via publish.yml so job_workflow_ref matches the registered
-  # PyPI trusted publisher (which is configured for publish.yml, not this file).
-  # OIDC claim validation requires an exact workflow filename match.
-  trigger-publish:
-    name: Trigger PyPI publish
+  # Inlined here so job_workflow_ref = semantic-versioning.yml, matching the
+  # PyPI trusted publisher registered for this workflow file.
+  # (workflow_dispatch to publish.yml at a tag ref returns 404 from GitHub API)
+  publish-pypi:
+    name: Publish to PyPI
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/visionkit/
     permissions:
-      actions: write
+      contents: read
+      id-token: write
 
     steps:
-      - name: Dispatch publish.yml at release tag
-        uses: actions/github-script@v7
+      - name: Check out repository at tag
+        uses: actions/checkout@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo:  context.repo.repo,
-              workflow_id: 'publish.yml',
-              ref:   '${{ needs.release.outputs.tag }}',
-              inputs: { target: 'pypi' },
-            })
+          ref: ${{ needs.release.outputs.tag }}
+          fetch-tags: true
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Build distributions (sdist + wheel)
+        run: uv build
+
+      - name: Validate distributions with twine
+        run: |
+          uv tool install twine
+          uv tool run twine check dist/*
+
+      - name: Publish to PyPI (trusted publisher / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
