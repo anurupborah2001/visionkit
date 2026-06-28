@@ -125,7 +125,7 @@ jobs:
             uv run cz bump --yes
           fi
 
-          VERSION=$(uv run cz version --project)
+          VERSION=$(grep -m1 '^version = "' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
           echo "released=true"      >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}"    >> "$GITHUB_OUTPUT"
