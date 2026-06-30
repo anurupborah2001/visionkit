@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
-name = "visionkit"
+name = "openvisionkit"
 version = "0.3.0"
 description = "MediaPipe Tasks API wrapper for Python computer vision"
 readme = "README.md"
@@ -52,11 +52,11 @@ dev = [
 
 [tool.hatch.build]
 exclude = [
-    "visionkit/lib/models/",
+    "openvisionkit/lib/models/",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["visionkit"]
+packages = ["openvisionkit"]
 
 # ── Commitizen ─────────────────────────────────────────────────────────────────
 [tool.commitizen]
@@ -70,7 +70,7 @@ changelog_file = "CHANGELOG.md"
 update_changelog_on_bump = false
 version_files = [
     "pyproject.toml:version = \"",
-    "visionkit/__init__.py:__version__ = \"",
+    "openvisionkit/__init__.py:__version__ = \"",
 ]
 
 # ── Pytest ─────────────────────────────────────────────────────────────────────

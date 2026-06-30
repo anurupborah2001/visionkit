@@ -2,7 +2,7 @@ name: Semantic Versioning
 
 # Responsibilities:
 #   1. Analyses conventional commits since the last tag
-#   2. Bumps version in pyproject.toml + visionkit/__init__.py
+#   2. Bumps version in pyproject.toml + openvisionkit/__init__.py
 #   3. Updates CHANGELOG.md
 #   4. Commits + pushes the bump commit and the vX.Y.Z annotated tag
 #   5. Explicitly calls downstream release and publish jobs
@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/visionkit/
+      url: https://pypi.org/project/openvisionkit/
     permissions:
       contents: read
       id-token: write

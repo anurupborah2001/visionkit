@@ -8,7 +8,7 @@ import json
 
 from conftest import blank_bgr, make_hand_landmarks
 
-from visionkit.lib.hand_detector import HandDetector
+from openvisionkit.lib.hand_detector import HandDetector
 
 
 def det():

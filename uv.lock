@@ -1503,6 +1503,73 @@ wheels = [
 ]
 
 [[package]]
+name = "openvisionkit"
+version = "0.3.0"
+source = { editable = "." }
+dependencies = [
+    { name = "imageio" },
+    { name = "imutils" },
+    { name = "mediapipe" },
+    { name = "mss" },
+    { name = "opencv-python" },
+    { name = "pandas" },
+    { name = "pyautogui" },
+    { name = "pytesseract" },
+    { name = "scikit-image" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "commitizen" },
+    { name = "flake8" },
+    { name = "flake8-bugbear" },
+    { name = "flake8-comprehensions" },
+    { name = "flake8-simplify" },
+    { name = "hatchling" },
+    { name = "isort" },
+    { name = "pip-audit" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pyupgrade" },
+    { name = "ruff" },
+    { name = "twine" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "imageio", specifier = ">=2.37.3" },
+    { name = "imutils", specifier = ">=0.5.4" },
+    { name = "mediapipe", specifier = ">=0.10.35" },
+    { name = "mss", specifier = ">=10.2.0" },
+    { name = "opencv-python", specifier = ">=4.13.0.92" },
+    { name = "pandas", specifier = ">=3.0.3" },
+    { name = "pyautogui", specifier = ">=0.9.54" },
+    { name = "pytesseract", specifier = ">=0.3.13" },
+    { name = "scikit-image", specifier = ">=0.26.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=26.5.1" },
+    { name = "commitizen", specifier = ">=4.16.4" },
+    { name = "flake8", specifier = ">=7.3.0" },
+    { name = "flake8-bugbear", specifier = ">=25.11.29" },
+    { name = "flake8-comprehensions", specifier = ">=3.17.0" },
+    { name = "flake8-simplify", specifier = ">=0.30.0" },
+    { name = "hatchling", specifier = ">=1.30.1" },
+    { name = "isort", specifier = ">=8.0.1" },
+    { name = "pip-audit", specifier = ">=2.9.0" },
+    { name = "pre-commit", specifier = ">=4.6.0" },
+    { name = "pytest", specifier = ">=9.0.3" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "pyupgrade", specifier = ">=3.21.2" },
+    { name = "ruff", specifier = ">=0.15.16" },
+    { name = "twine", specifier = ">=6.2.0" },
+]
+
+[[package]]
 name = "packageurl-python"
 version = "0.17.6"
 source = { registry = "https://pypi.org/simple" }
@@ -2627,73 +2694,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e1/0d/4e93c8e6d1001a75763f87d8f5ecda8ebc7f4aa2153dddfaf4ae8892821a/virtualenv-21.4.2.tar.gz", hash = "sha256:38e6ee0a555615c0ea9da2ac7e9998fe8dc3b911dd33ad8eaad2020957653b0c", size = 7613326, upload-time = "2026-05-31T17:01:22.827Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bf/c4/557dc082be035381b85fdb2b74e21d3d21b57750b74f2b47a32f3a639ff9/virtualenv-21.4.2-py3-none-any.whl", hash = "sha256:854210ca524a1a4d0d744734f4acbc721c3ffe163b85bbf5d56d14d5ae2f0fae", size = 7594079, upload-time = "2026-05-31T17:01:20.735Z" },
-]
-
-[[package]]
-name = "visionkit"
-version = "0.2.1"
-source = { editable = "." }
-dependencies = [
-    { name = "imageio" },
-    { name = "imutils" },
-    { name = "mediapipe" },
-    { name = "mss" },
-    { name = "opencv-python" },
-    { name = "pandas" },
-    { name = "pyautogui" },
-    { name = "pytesseract" },
-    { name = "scikit-image" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "black" },
-    { name = "commitizen" },
-    { name = "flake8" },
-    { name = "flake8-bugbear" },
-    { name = "flake8-comprehensions" },
-    { name = "flake8-simplify" },
-    { name = "hatchling" },
-    { name = "isort" },
-    { name = "pip-audit" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pyupgrade" },
-    { name = "ruff" },
-    { name = "twine" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "imageio", specifier = ">=2.37.3" },
-    { name = "imutils", specifier = ">=0.5.4" },
-    { name = "mediapipe", specifier = ">=0.10.35" },
-    { name = "mss", specifier = ">=10.2.0" },
-    { name = "opencv-python", specifier = ">=4.13.0.92" },
-    { name = "pandas", specifier = ">=3.0.3" },
-    { name = "pyautogui", specifier = ">=0.9.54" },
-    { name = "pytesseract", specifier = ">=0.3.13" },
-    { name = "scikit-image", specifier = ">=0.26.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=26.5.1" },
-    { name = "commitizen", specifier = ">=4.16.4" },
-    { name = "flake8", specifier = ">=7.3.0" },
-    { name = "flake8-bugbear", specifier = ">=25.11.29" },
-    { name = "flake8-comprehensions", specifier = ">=3.17.0" },
-    { name = "flake8-simplify", specifier = ">=0.30.0" },
-    { name = "hatchling", specifier = ">=1.30.1" },
-    { name = "isort", specifier = ">=8.0.1" },
-    { name = "pip-audit", specifier = ">=2.9.0" },
-    { name = "pre-commit", specifier = ">=4.6.0" },
-    { name = "pytest", specifier = ">=9.0.3" },
-    { name = "pytest-cov", specifier = ">=7.1.0" },
-    { name = "pyupgrade", specifier = ">=3.21.2" },
-    { name = "ruff", specifier = ">=0.15.16" },
-    { name = "twine", specifier = ">=6.2.0" },
 ]
 
 [[package]]

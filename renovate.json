@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate config for VisionKit — automated dependency updates with security alerts",
+  "description": "Renovate config for OpenVisionKit — automated dependency updates with security alerts",
   "extends": [
     "config:recommended",
     "security:openssf-scorecard",

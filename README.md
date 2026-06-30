@@ -1,14 +1,14 @@
-# VisionKit
+# OpenVisionKit
 
-[![CI — Unit Tests](https://github.com/anurupborah2001/visionkit/actions/workflows/ci-unit.yml/badge.svg)](https://github.com/your-org/visionkit/actions/workflows/ci-unit.yml)
-[![Security Scan](https://github.com/anurupborah2001/visionkit/actions/workflows/ci-security.yml/badge.svg)](https://github.com/your-org/visionkit/actions/workflows/ci-security.yml)
-[![PyPI version](https://badge.fury.io/py/visionkit.svg)](https://pypi.org/p/visionkit)
+[![CI — Unit Tests](https://github.com/anurupborah2001/openvisionkit/actions/workflows/ci-unit.yml/badge.svg)](https://github.com/your-org/openvisionkit/actions/workflows/ci-unit.yml)
+[![Security Scan](https://github.com/anurupborah2001/openvisionkit/actions/workflows/ci-security.yml/badge.svg)](https://github.com/your-org/openvisionkit/actions/workflows/ci-security.yml)
+[![PyPI version](https://badge.fury.io/py/openvisionkit.svg)](https://pypi.org/p/openvisionkit)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**VisionKit** is a high-level Python computer vision library built on top of [MediaPipe](https://developers.google.com/mediapipe) and [OpenCV](https://opencv.org/). It provides production-ready detectors and segmentation utilities for face detection, face mesh, hand tracking, pose estimation, object detection, and background segmentation — wrapped in clean, developer-friendly APIs that eliminate boilerplate and let you focus on building.
+**OpenVisionKit** is a high-level Python computer vision library built on top of [MediaPipe](https://developers.google.com/mediapipe) and [OpenCV](https://opencv.org/). It provides production-ready detectors and segmentation utilities for face detection, face mesh, hand tracking, pose estimation, object detection, and background segmentation — wrapped in clean, developer-friendly APIs that eliminate boilerplate and let you focus on building.
 
-Whether you are prototyping a gesture-controlled application, building a fitness tracker, adding AR effects, or conducting research, VisionKit gives you the tools to go from camera frame to structured detections in a few lines of code.
+Whether you are prototyping a gesture-controlled application, building a fitness tracker, adding AR effects, or conducting research, OpenVisionKit gives you the tools to go from camera frame to structured detections in a few lines of code.
 
 ---
 
@@ -78,32 +78,32 @@ Without spaCy, all NLP methods return empty results gracefully — the rest of `
 ### pip
 
 ```bash
-pip install visionkit
+pip install openvisionkit
 ```
 
 Or install directly from source:
 
 ```bash
-pip install git+https://github.com/your-org/visionkit.git
+pip install git+https://github.com/your-org/openvisionkit.git
 ```
 
 ### uv
 
 ```bash
-uv add visionkit
+uv add openvisionkit
 ```
 
 Or from source:
 
 ```bash
-uv add git+https://github.com/your-org/visionkit.git
+uv add git+https://github.com/your-org/openvisionkit.git
 ```
 
 For development (editable install with all dev dependencies):
 
 ```bash
-git clone https://github.com/your-org/visionkit.git
-cd visionkit
+git clone https://github.com/your-org/openvisionkit.git
+cd openvisionkit
 make setup
 ```
 
@@ -111,7 +111,7 @@ make setup
 
 ## Model Downloads
 
-VisionKit delegates inference to MediaPipe `.tflite` / `.task` model files. Download the models you need and place them in a `models/` directory at your project root.
+OpenVisionKit delegates inference to MediaPipe `.tflite` / `.task` model files. Download the models you need and place them in a `models/` directory at your project root.
 
 | Detector | Model file | Download |
 |---|---|---|
@@ -129,8 +129,8 @@ VisionKit delegates inference to MediaPipe `.tflite` / `.task` model files. Down
 
 ```python
 import cv2
-from visionkit.capture.video_template import video_capture_template
-from visionkit.lib.hand_detector import HandDetector
+from openvisionkit.capture.video_template import video_capture_template
+from openvisionkit.lib.hand_detector import HandDetector
 
 detector = HandDetector(model_path="./models/hand_landmarker.task")
 
@@ -151,7 +151,7 @@ Detects faces in an image or video stream and returns bounding boxes, keypoints,
 
 ```python
 import cv2
-from visionkit.lib.face_detector import FaceDetector
+from openvisionkit.lib.face_detector import FaceDetector
 
 detector = FaceDetector(
     model_path="./models/face_detector.tflite",
@@ -205,7 +205,7 @@ Detects 478 facial landmarks per face along with blendshape expressions and head
 
 ```python
 import cv2
-from visionkit.lib.face_mesh_detector import FaceMeshDetector
+from openvisionkit.lib.face_mesh_detector import FaceMeshDetector
 
 detector = FaceMeshDetector(
     model_path="./models/face_landmarker_v2_with_blendshapes.task",
@@ -263,7 +263,7 @@ Tracks up to N hands with 21 landmarks each. Provides gesture recognition, finge
 
 ```python
 import cv2
-from visionkit.lib.hand_detector import HandDetector
+from openvisionkit.lib.hand_detector import HandDetector
 
 detector = HandDetector(
     model_path="./models/hand_landmarker.task",
@@ -340,7 +340,7 @@ Detects 33 body landmarks. Supports joint angle calculation, exercise classifica
 
 ```python
 import cv2
-from visionkit.lib.pose_detector import PoseDetector
+from openvisionkit.lib.pose_detector import PoseDetector
 from mediapipe.tasks.python import vision
 
 detector = PoseDetector(
@@ -406,7 +406,7 @@ Detects multiple object classes in a frame using EfficientDet Lite.
 
 ```python
 import cv2
-from visionkit.lib.object_detector import ObjectDetector
+from openvisionkit.lib.object_detector import ObjectDetector
 
 detector = ObjectDetector(
     model_path="./models/efficientdet_lite.tflite",
@@ -441,7 +441,7 @@ Separates people from backgrounds using DeepLab V3. Multiple compositing modes a
 
 ```python
 import cv2
-from visionkit.lib.selfie_segmentation import SelfieSegmentation
+from openvisionkit.lib.selfie_segmentation import SelfieSegmentation
 
 seg = SelfieSegmentation(
     model_path="./models/deeplab_v3.tflite",
@@ -489,7 +489,7 @@ Segments hair regions for recoloring or styling effects.
 ```python
 import cv2
 import numpy as np
-from visionkit.lib.hair_segmentation import HairSegmentation
+from openvisionkit.lib.hair_segmentation import HairSegmentation
 
 seg = HairSegmentation(model_path="./models/hair_segmenter.tflite")
 
@@ -516,7 +516,7 @@ cv2.waitKey(0)
 Captures live frames from a monitor — useful for screen-based CV pipelines.
 
 ```python
-from visionkit.capture.screen_capture import ScreenCapture
+from openvisionkit.capture.screen_capture import ScreenCapture
 import cv2
 
 cap = ScreenCapture(monitor_index=1)  # 1 = primary monitor
@@ -538,8 +538,8 @@ A reusable webcam loop that handles window setup, FPS display, recording, and sc
 
 ```python
 import cv2
-from visionkit.capture.video_template import video_capture_template
-from visionkit.lib.face_detector import FaceDetector
+from openvisionkit.capture.video_template import video_capture_template
+from openvisionkit.lib.face_detector import FaceDetector
 
 detector = FaceDetector(model_path="./models/face_detector.tflite", running_mode="VIDEO")
 
@@ -572,7 +572,7 @@ video_capture_template(
 **Stateful key handlers with `KeyEventManager`:**
 
 ```python
-from visionkit.capture.video_template import KeyEventManager, video_capture_template
+from openvisionkit.capture.video_template import KeyEventManager, video_capture_template
 
 state = {"score": 0}
 km = KeyEventManager()
@@ -631,8 +631,8 @@ A single-image equivalent of `video_capture_template`. Loads one image from disk
 
 ```python
 import cv2
-from visionkit.capture.image_template import image_template
-from visionkit.lib.face_detector import FaceDetector
+from openvisionkit.capture.image_template import image_template
+from openvisionkit.lib.face_detector import FaceDetector
 
 detector = FaceDetector(model_path="./models/face_detector.tflite", running_mode="IMAGE")
 
@@ -681,7 +681,7 @@ See [TextDetector additional requirements](#textdetector-additional-requirements
 
 ```python
 import cv2
-from visionkit.lib.text_detector import TextDetector
+from openvisionkit.lib.text_detector import TextDetector
 
 image = cv2.imread("document.jpg")
 
@@ -896,7 +896,7 @@ detector.disable_gpu()   # revert to CPU
 ## Project Structure
 
 ```
-visionkit/
+openvisionkit/
 ├── __init__.py               # package version (__version__)
 ├── lib/
 │   ├── face_detector.py          # FaceDetector
@@ -944,8 +944,8 @@ All detectors support three MediaPipe running modes:
 ### Dev setup
 
 ```bash
-git clone https://github.com/your-org/visionkit.git
-cd visionkit
+git clone https://github.com/your-org/openvisionkit.git
+cd openvisionkit
 make setup          # uv sync + install pre-commit hooks
 ```
 

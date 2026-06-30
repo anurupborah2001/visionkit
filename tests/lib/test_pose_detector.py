@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from conftest import MockLandmark, MockPoseResult, blank_bgr
 
-from visionkit.lib.pose_detector import PoseDetector
+from openvisionkit.lib.pose_detector import PoseDetector
 
 
 def det():

@@ -42,7 +42,7 @@ jobs:
         run: |
           uv run pytest tests/ \
             -m "not integration" \
-            --cov=visionkit \
+            --cov=openvisionkit \
             --cov-report=xml \
             --cov-report=term-missing \
             -v

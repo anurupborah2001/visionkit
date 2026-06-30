@@ -65,7 +65,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: models/
-          key: visionkit-models-${{ hashFiles('pyproject.toml') }}
+          key: openvisionkit-models-${{ hashFiles('pyproject.toml') }}
 
       - name: Run integration tests
         env:

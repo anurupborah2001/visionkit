@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 from conftest import blank_bgr
 
-from visionkit.capture.video_template import (
+from openvisionkit.capture.video_template import (
     KeyEventManager,
     save_screenshot,
     video_capture_template,
@@ -62,10 +62,11 @@ def _run(fake_cap, **kwargs):
     defaults.update(kwargs)
     with (
         patch(
-            "visionkit.capture.video_template.cv2.VideoCapture", return_value=fake_cap
+            "openvisionkit.capture.video_template.cv2.VideoCapture",
+            return_value=fake_cap,
         ),
-        patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-        patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+        patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+        patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
     ):
         video_capture_template(**defaults)
 
@@ -215,13 +216,13 @@ class TestVideoCaptureTemplateUnit:
     def test_no_window_calls_when_show_window_false(self):
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture([blank_bgr()]),
             ),
-            patch("visionkit.capture.video_template.cv2.namedWindow") as mock_win,
-            patch("visionkit.capture.video_template.cv2.imshow") as mock_show,
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.namedWindow") as mock_win,
+            patch("openvisionkit.capture.video_template.cv2.imshow") as mock_show,
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=0,
@@ -246,11 +247,11 @@ class TestVideoCaptureTemplateUnit:
 
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture([blank_bgr() for _ in range(10)]),
             ),
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=27),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=27),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=0,
@@ -273,17 +274,17 @@ class TestVideoCaptureTemplateUnit:
         cb = MagicMock()
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture([blank_bgr()]),
             ),
-            patch("visionkit.capture.video_template.cv2.namedWindow"),
-            patch("visionkit.capture.video_template.cv2.resizeWindow"),
+            patch("openvisionkit.capture.video_template.cv2.namedWindow"),
+            patch("openvisionkit.capture.video_template.cv2.resizeWindow"),
             patch(
-                "visionkit.capture.video_template.cv2.setMouseCallback"
+                "openvisionkit.capture.video_template.cv2.setMouseCallback"
             ) as mock_set_cb,
-            patch("visionkit.capture.video_template.cv2.imshow"),
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=27),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.imshow"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=27),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=0,
@@ -298,12 +299,12 @@ class TestVideoCaptureTemplateUnit:
     def test_auto_recording_creates_recorder_writes_and_stops(self):
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture([blank_bgr()]),
             ),
-            patch("visionkit.capture.video_template.VideoRecorder") as MockVR,
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.VideoRecorder") as MockVR,
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             instance = MagicMock()
             MockVR.return_value = instance
@@ -325,15 +326,15 @@ class TestVideoCaptureTemplateUnit:
         frames = [blank_bgr(), blank_bgr()]
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture(frames),
             ),
-            patch("visionkit.capture.video_template.VideoRecorder") as MockVR,
+            patch("openvisionkit.capture.video_template.VideoRecorder") as MockVR,
             patch(
-                "visionkit.capture.video_template.cv2.waitKey",
+                "openvisionkit.capture.video_template.cv2.waitKey",
                 side_effect=[ord("r"), 0],
             ),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             instance = MagicMock()
             MockVR.return_value = instance
@@ -356,16 +357,16 @@ class TestVideoCaptureTemplateUnit:
 
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture(frames),
             ),
             patch(
-                "visionkit.capture.video_template.save_screenshot",
+                "openvisionkit.capture.video_template.save_screenshot",
                 side_effect=lambda f, **kw: screenshots.append(1) or "/tmp/x.png",
             ),
-            patch("visionkit.capture.video_template.time") as mock_time,
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.time") as mock_time,
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             mock_time.time.side_effect = time_values
             video_capture_template(
@@ -388,16 +389,16 @@ class TestVideoCaptureTemplateUnit:
 
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture(frames),
             ),
             patch(
-                "visionkit.capture.video_template.save_screenshot",
+                "openvisionkit.capture.video_template.save_screenshot",
                 side_effect=lambda f, **kw: screenshots.append(1) or "/tmp/x.png",
             ),
-            patch("visionkit.capture.video_template.time") as mock_time,
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.time") as mock_time,
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             mock_time.time.side_effect = time_values
             video_capture_template(
@@ -415,17 +416,18 @@ class TestVideoCaptureTemplateUnit:
         screenshots = []
         with (
             patch(
-                "visionkit.capture.video_template.cv2.VideoCapture",
+                "openvisionkit.capture.video_template.cv2.VideoCapture",
                 return_value=FakeCapture([blank_bgr()]),
             ),
             patch(
-                "visionkit.capture.video_template.save_screenshot",
+                "openvisionkit.capture.video_template.save_screenshot",
                 side_effect=lambda f, **kw: screenshots.append(1) or "/tmp/x.png",
             ),
             patch(
-                "visionkit.capture.video_template.cv2.waitKey", return_value=ord("s")
+                "openvisionkit.capture.video_template.cv2.waitKey",
+                return_value=ord("s"),
             ),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=0,
@@ -465,8 +467,8 @@ class TestVideoCaptureTemplateIntegration:
             return frame
 
         with (
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=synthetic_video,
@@ -485,8 +487,8 @@ class TestVideoCaptureTemplateIntegration:
             return frame
 
         with (
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=synthetic_video,
@@ -500,8 +502,8 @@ class TestVideoCaptureTemplateIntegration:
     def test_auto_screenshot_writes_png_to_disk(self, synthetic_video, tmp_path):
         shot_dir = str(tmp_path / "shots")
         with (
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=synthetic_video,
@@ -519,8 +521,8 @@ class TestVideoCaptureTemplateIntegration:
 
     def test_fps_counter_overlay_does_not_raise(self, synthetic_video):
         with (
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=synthetic_video,
@@ -530,7 +532,7 @@ class TestVideoCaptureTemplateIntegration:
             )
 
     def test_auto_recording_creates_output_file(self, synthetic_video, tmp_path):
-        from visionkit.capture.video_recorder import VideoRecorder
+        from openvisionkit.capture.video_recorder import VideoRecorder
 
         original_init = VideoRecorder.__post_init__
 
@@ -543,8 +545,8 @@ class TestVideoCaptureTemplateIntegration:
 
         with (
             patch.object(VideoRecorder, "__post_init__", patched_init),
-            patch("visionkit.capture.video_template.cv2.waitKey", return_value=0),
-            patch("visionkit.capture.video_template.cv2.destroyAllWindows"),
+            patch("openvisionkit.capture.video_template.cv2.waitKey", return_value=0),
+            patch("openvisionkit.capture.video_template.cv2.destroyAllWindows"),
         ):
             video_capture_template(
                 video_source=synthetic_video,

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 
-from visionkit.lib.text_detector import TextDetector
+from openvisionkit.lib.text_detector import TextDetector
 
 
 def det(text="Hello world"):

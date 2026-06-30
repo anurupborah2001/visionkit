@@ -1,15 +1,15 @@
-# CLAUDE.md — VisionKit Developer Guide
+# CLAUDE.md — OpenVisionKit Developer Guide
 
-This file provides project context, architecture notes, and conventions for working on VisionKit with Claude Code.
+This file provides project context, architecture notes, and conventions for working on OpenVisionKit with Claude Code.
 
 ---
 
 ## Project Overview
 
-**VisionKit** is a Python computer vision library wrapping [MediaPipe Tasks API](https://developers.google.com/mediapipe/solutions/guide) with developer-friendly abstractions. It is structured as a package under `visionkit/` with two primary namespaces:
+**OpenVisionKit** is a Python computer vision library wrapping [MediaPipe Tasks API](https://developers.google.com/mediapipe/solutions/guide) with developer-friendly abstractions. It is structured as a package under `openvisionkit/` with two primary namespaces:
 
-- `visionkit.lib` — detector and segmentation classes
-- `visionkit.capture` — video/screen capture utilities and loop templates
+- `openvisionkit.lib` — detector and segmentation classes
+- `openvisionkit.capture` — video/screen capture utilities and loop templates
 
 Package management uses **uv** (`pyproject.toml` + `uv.lock`). Python >= 3.11.8 required.
 
@@ -18,7 +18,7 @@ Package management uses **uv** (`pyproject.toml` + `uv.lock`). Python >= 3.11.8 
 ## Repository Layout
 
 ```
-visionkit/           # installable Python package
+openvisionkit/           # installable Python package
   __init__.py        # exposes __version__ — managed by python-semantic-release
   lib/               # detector classes (MediaPipe Tasks API)
   capture/           # capture utilities (OpenCV, mss)
@@ -66,7 +66,7 @@ models/              # NOT committed — each developer provides .tflite/.task f
 
 ### Detector pattern
 
-Every detector in `visionkit/lib/` follows this structure:
+Every detector in `openvisionkit/lib/` follows this structure:
 
 1. `__init__` — accepts `model_path`, `running_mode` (`"IMAGE"` | `"VIDEO"`), and task-specific thresholds. Constructs a `vision.*Options` and calls `create_from_options`.
 2. `_to_mp_image(image)` — converts BGR numpy array to `mp.Image(SRGB)`. Present on every detector.
@@ -221,8 +221,8 @@ Tesseract OCR wrapper. **Not MediaPipe-based — different dependency chain.**
 ### First-time setup
 
 ```bash
-git clone https://github.com/your-org/visionkit.git
-cd visionkit
+git clone https://github.com/your-org/openvisionkit.git
+cd openvisionkit
 make setup          # runs: uv sync --all-groups + pre-commit install
 ```
 
@@ -235,7 +235,7 @@ make format         # black + isort (auto-fix in place)
 make format-check   # same check, no writes (used in CI)
 make lint           # ruff + flake8 (report only)
 make lint-fix       # ruff --fix (auto-fix ruff-fixable issues)
-make typecheck      # mypy visionkit/ --ignore-missing-imports
+make typecheck      # mypy openvisionkit/ --ignore-missing-imports
 make test           # pytest -m "not integration" (fast, no model files needed)
 make test-cov       # pytest with HTML coverage report → htmlcov/
 make check          # format-check + lint + typecheck (pre-push sanity)
@@ -303,7 +303,7 @@ feat!: remove deprecated detect_v1 API
 
 Version is managed by **python-semantic-release v9**. Do not edit version strings manually.
 
-- Source of truth: `pyproject.toml → [project] version` and `visionkit/__init__.py → __version__`
+- Source of truth: `pyproject.toml → [project] version` and `openvisionkit/__init__.py → __version__`
 - PSR updates both atomically on release
 - Version format: `MAJOR.MINOR.PATCH` (e.g. `0.2.1`)
 - Tag format: `vMAJOR.MINOR.PATCH` (e.g. `v0.2.1`)
@@ -313,7 +313,7 @@ Version is managed by **python-semantic-release v9**. Do not edit version string
 # pyproject.toml
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-version_variables = ["visionkit/__init__.py:__version__"]
+version_variables = ["openvisionkit/__init__.py:__version__"]
 branch = "main"
 tag_format = "v{version}"
 commit_message = "chore(release): v{version} [skip ci]"
@@ -359,7 +359,7 @@ All workflows live in `.github/workflows/`.
 
 - **Triggers:** push to any branch; PR to `main`/`master`
 - **Matrix:** Python 3.11 + 3.12
-- **Command:** `pytest tests/ -m "not integration" --cov=visionkit --cov-report=xml`
+- **Command:** `pytest tests/ -m "not integration" --cov=openvisionkit --cov-report=xml`
 - Codecov upload on Python 3.11 only
 - Requires `CODECOV_TOKEN` secret (optional)
 
@@ -395,7 +395,7 @@ All workflows live in `.github/workflows/`.
 - **Triggers:** push to `main`/`master`; skips if commit message contains `[skip ci]`
 - **Concurrency:** `cancel-in-progress: false` — never interrupt a release mid-flight
 - Steps: full history checkout (`fetch-depth: 0`) → `uv sync` → `semantic-release version --vcs-release`
-- PSR writes version to `pyproject.toml` + `visionkit/__init__.py`, commits, tags, creates GitHub Release
+- PSR writes version to `pyproject.toml` + `openvisionkit/__init__.py`, commits, tags, creates GitHub Release
 - `trigger-publish` job dispatches `publish.yml` at the new tag ref via `workflow_dispatch`
 - Requires `SEMANTIC_RELEASE_TOKEN` secret (PAT with `contents: write` + `pull-requests: write`)
 
@@ -428,7 +428,7 @@ Tests live in `tests/` mirroring the package structure (e.g. `tests/lib/test_fac
 uv run pytest tests/ -v                        # all tests
 uv run pytest tests/ -m "not integration" -v   # unit only (no model files needed)
 uv run pytest tests/ -m "integration" -v       # integration only
-uv run pytest tests/ --cov=visionkit           # with coverage
+uv run pytest tests/ --cov=openvisionkit           # with coverage
 ```
 
 All unit tests must pass without model files. Mark any test that instantiates a real detector with `@pytest.mark.integration`.
@@ -457,7 +457,7 @@ PyPI publishing uses OIDC trusted publishing — no PyPI API token needed.
 - Mix `running_mode` after construction — MediaPipe does not allow switching modes on a live detector
 - Add dependencies without updating `pyproject.toml` via `uv add`
 - Modify `uv.lock` by hand — always let `uv` manage it
-- Edit `pyproject.toml:project.version` or `visionkit/__init__.py:__version__` by hand — python-semantic-release owns these
+- Edit `pyproject.toml:project.version` or `openvisionkit/__init__.py:__version__` by hand — python-semantic-release owns these
 - Skip the pre-commit hooks with `git commit --no-verify` except in genuine emergencies
 - Push directly to `main`/`master` — the `no-commit-to-branch` hook blocks this; use PRs
 
@@ -508,7 +508,7 @@ class MyDetector:
 
 ## Adding a New Detector
 
-1. Create `visionkit/lib/my_detector.py`.
+1. Create `openvisionkit/lib/my_detector.py`.
 2. Follow the existing detector pattern: `__init__` with `model_path` + `running_mode`, `_to_mp_image`, primary detection method returning `(annotated, result)`.
 3. Accept BGR input; convert to RGB internally before passing to MediaPipe.
 4. Add the corresponding model file name to the README model table.
@@ -524,5 +524,5 @@ class MyDetector:
 - **VIDEO mode without timestamps:** `PoseDetector` auto-increments its counter, but other detectors require `timestamp_ms` to increase monotonically between calls in VIDEO mode.
 - **Calibrated distance without calibration samples:** `HandDetector.estimate_distance_cm` returns `None` if `self.model` is not set. Pass `calibration_samples` to `__init__` to enable it.
 - **Workout rep counter is per-instance state:** Do not share a single `PoseDetector` instance across multiple people or sessions without resetting `rep_count` and related state.
-- **Version string drift:** `pyproject.toml:project.version` and `visionkit/__init__.py:__version__` must always match. PSR keeps them in sync — never edit them manually or they will diverge on next release.
+- **Version string drift:** `pyproject.toml:project.version` and `openvisionkit/__init__.py:__version__` must always match. PSR keeps them in sync — never edit them manually or they will diverge on next release.
 - **Non-conventional commit message:** `conventional-pre-commit` will reject commits that don't match the `<type>: <desc>` format. Fix the message, don't bypass the hook.

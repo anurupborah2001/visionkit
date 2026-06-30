@@ -57,28 +57,28 @@ hooks-uninstall: ## Remove pre-commit hooks from .git/hooks
 # ── Formatting ────────────────────────────────────────────────────────────────
 .PHONY: format
 format: ## Auto-format with Black + isort
-	$(UV) run black visionkit/ tests/ main.py
-	$(UV) run isort --profile black visionkit/ tests/ main.py
+	$(UV) run black openvisionkit/ tests/ main.py
+	$(UV) run isort --profile black openvisionkit/ tests/ main.py
 
 .PHONY: format-check
 format-check: ## Check formatting without modifying files
-	$(UV) run black --check visionkit/ tests/ main.py
-	$(UV) run isort --profile black --check-only visionkit/ tests/ main.py
+	$(UV) run black --check openvisionkit/ tests/ main.py
+	$(UV) run isort --profile black --check-only openvisionkit/ tests/ main.py
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 .PHONY: lint
 lint: ## Run Ruff + Flake8
-	$(UV) run ruff check visionkit/ tests/ main.py
-	$(UV) run flake8 --max-line-length=88 --extend-ignore=E203,W503,E501 visionkit/ tests/ main.py
+	$(UV) run ruff check openvisionkit/ tests/ main.py
+	$(UV) run flake8 --max-line-length=88 --extend-ignore=E203,W503,E501 openvisionkit/ tests/ main.py
 
 .PHONY: lint-fix
 lint-fix: ## Run Ruff with auto-fix
-	$(UV) run ruff check --fix visionkit/ tests/ main.py
+	$(UV) run ruff check --fix openvisionkit/ tests/ main.py
 
 # ── Type checking ─────────────────────────────────────────────────────────────
 .PHONY: typecheck
 typecheck: ## Run mypy on the package
-	$(UV) run python -m mypy visionkit/ --ignore-missing-imports
+	$(UV) run python -m mypy openvisionkit/ --ignore-missing-imports
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 .PHONY: test
@@ -91,7 +91,7 @@ test-smoke: ## Fast smoke check (stop on first failure)
 
 .PHONY: test-cov
 test-cov: ## Run tests with coverage report
-	$(UV) run pytest tests/ --cov=visionkit --cov-report=term-missing --cov-report=html
+	$(UV) run pytest tests/ --cov=openvisionkit --cov-report=term-missing --cov-report=html
 
 # ── Combined quality gate ─────────────────────────────────────────────────────
 .PHONY: check

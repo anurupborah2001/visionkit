@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 
-from visionkit.lib.face_detector import FaceDetector
+from openvisionkit.lib.face_detector import FaceDetector
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from conftest import blank_bgr, make_face_detection

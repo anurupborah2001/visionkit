@@ -1,8 +1,8 @@
-# VisionKit Utility Methods Implementation Plan
+# OpenVisionKit Utility Methods Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add 87 utility methods across 11 detector/segmentation classes in `visionkit/lib/` to cover real-world use cases without model inference in tests.
+**Goal:** Add 87 utility methods across 11 detector/segmentation classes in `openvisionkit/lib/` to cover real-world use cases without model inference in tests.
 
 **Architecture:** All methods added in-place to existing class files. New methods operate on already-parsed results (detection dicts, numpy arrays, landmark lists) — no model files needed in tests. Tests use `ClassName.__new__(ClassName)` to skip `__init__` and avoid model loading.
 
@@ -144,7 +144,7 @@ git commit -m "test: add test infrastructure and shared fixtures"
 
 **Files:**
 - Create: `tests/lib/test_face_detector.py`
-- Modify: `visionkit/lib/face_detector.py`
+- Modify: `openvisionkit/lib/face_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -155,7 +155,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 import pytest
-from visionkit.lib.face_detector import FaceDetector
+from openvisionkit.lib.face_detector import FaceDetector
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from conftest import blank_bgr, make_face_detection
 
@@ -220,7 +220,7 @@ uv run pytest tests/lib/test_face_detector.py -v 2>&1 | head -30
 
 Expected: `AttributeError: pixelate_faces` or similar
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/face_detector.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/face_detector.py`**
 
 Add after the last existing method:
 
@@ -269,7 +269,7 @@ Expected: 3 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/face_detector.py tests/lib/test_face_detector.py
+git add openvisionkit/lib/face_detector.py tests/lib/test_face_detector.py
 git commit -m "feat(face_detector): add pixelate_faces, is_frontal, get_padded_crop"
 ```
 
@@ -281,7 +281,7 @@ git commit -m "feat(face_detector): add pixelate_faces, is_frontal, get_padded_c
 
 **Files:**
 - Modify: `tests/lib/test_face_detector.py`
-- Modify: `visionkit/lib/face_detector.py`
+- Modify: `openvisionkit/lib/face_detector.py`
 
 - [ ] **Step 1: Append failing tests**
 
@@ -397,7 +397,7 @@ Expected: all pass
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/face_detector.py tests/lib/test_face_detector.py
+git add openvisionkit/lib/face_detector.py tests/lib/test_face_detector.py
 git commit -m "feat(face_detector): add draw_face_ids, get_attention_score, batch_detect, save_crops"
 ```
 
@@ -409,7 +409,7 @@ git commit -m "feat(face_detector): add draw_face_ids, get_attention_score, batc
 
 **Files:**
 - Create: `tests/lib/test_face_mesh_detector.py`
-- Modify: `visionkit/lib/face_mesh_detector.py`
+- Modify: `openvisionkit/lib/face_mesh_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -420,7 +420,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from visionkit.lib.face_mesh_detector import FaceMeshDetector
+from openvisionkit.lib.face_mesh_detector import FaceMeshDetector
 from conftest import make_blend, make_face_478
 
 
@@ -500,7 +500,7 @@ def test_is_drowsy_mirrors_is_eyes_closed(monkeypatch):
 uv run pytest tests/lib/test_face_mesh_detector.py -v 2>&1 | tail -15
 ```
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/face_mesh_detector.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/face_mesh_detector.py`**
 
 ```python
     def is_smiling(self, blend, threshold=0.4):
@@ -536,7 +536,7 @@ uv run pytest tests/lib/test_face_mesh_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/face_mesh_detector.py tests/lib/test_face_mesh_detector.py
+git add openvisionkit/lib/face_mesh_detector.py tests/lib/test_face_mesh_detector.py
 git commit -m "feat(face_mesh_detector): add expression detection methods"
 ```
 
@@ -548,7 +548,7 @@ git commit -m "feat(face_mesh_detector): add expression detection methods"
 
 **Files:**
 - Modify: `tests/lib/test_face_mesh_detector.py`
-- Modify: `visionkit/lib/face_mesh_detector.py`
+- Modify: `openvisionkit/lib/face_mesh_detector.py`
 
 - [ ] **Step 1: Append failing tests**
 
@@ -672,7 +672,7 @@ uv run pytest tests/lib/test_face_mesh_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/face_mesh_detector.py tests/lib/test_face_mesh_detector.py
+git add openvisionkit/lib/face_mesh_detector.py tests/lib/test_face_mesh_detector.py
 git commit -m "feat(face_mesh_detector): add geometry and composite methods"
 ```
 
@@ -684,7 +684,7 @@ git commit -m "feat(face_mesh_detector): add geometry and composite methods"
 
 **Files:**
 - Create: `tests/lib/test_hand_detector.py`
-- Modify: `visionkit/lib/hand_detector.py`
+- Modify: `openvisionkit/lib/hand_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -695,7 +695,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from visionkit.lib.hand_detector import HandDetector
+from openvisionkit.lib.hand_detector import HandDetector
 from conftest import make_hand_landmarks
 
 
@@ -763,7 +763,7 @@ def test_recognize_number_delegates(monkeypatch):
 uv run pytest tests/lib/test_hand_detector.py -v 2>&1 | tail -15
 ```
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/hand_detector.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/hand_detector.py`**
 
 ```python
     def is_ok_sign(self, hand_landmarks):
@@ -796,7 +796,7 @@ uv run pytest tests/lib/test_hand_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/hand_detector.py tests/lib/test_hand_detector.py
+git add openvisionkit/lib/hand_detector.py tests/lib/test_hand_detector.py
 git commit -m "feat(hand_detector): add gesture recognition methods"
 ```
 
@@ -808,7 +808,7 @@ git commit -m "feat(hand_detector): add gesture recognition methods"
 
 **Files:**
 - Modify: `tests/lib/test_hand_detector.py`
-- Modify: `visionkit/lib/hand_detector.py`
+- Modify: `openvisionkit/lib/hand_detector.py`
 
 - [ ] **Step 1: Append failing tests**
 
@@ -955,7 +955,7 @@ uv run pytest tests/lib/test_hand_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/hand_detector.py tests/lib/test_hand_detector.py
+git add openvisionkit/lib/hand_detector.py tests/lib/test_hand_detector.py
 git commit -m "feat(hand_detector): add orientation, swipe, angle, label, json utilities"
 ```
 
@@ -967,7 +967,7 @@ git commit -m "feat(hand_detector): add orientation, swipe, angle, label, json u
 
 **Files:**
 - Create: `tests/lib/test_pose_detector.py`
-- Modify: `visionkit/lib/pose_detector.py`
+- Modify: `openvisionkit/lib/pose_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -979,7 +979,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import math
 import pytest
-from visionkit.lib.pose_detector import PoseDetector
+from openvisionkit.lib.pose_detector import PoseDetector
 from conftest import MockLandmark, MockPoseResult
 
 
@@ -1048,7 +1048,7 @@ def test_get_symmetry_score_empty_returns_zero():
 uv run pytest tests/lib/test_pose_detector.py -v 2>&1 | tail -15
 ```
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/pose_detector.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/pose_detector.py`**
 
 ```python
     def get_spine_angle(self, detection_result):
@@ -1105,7 +1105,7 @@ uv run pytest tests/lib/test_pose_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/pose_detector.py tests/lib/test_pose_detector.py
+git add openvisionkit/lib/pose_detector.py tests/lib/test_pose_detector.py
 git commit -m "feat(pose_detector): add posture analysis methods"
 ```
 
@@ -1117,7 +1117,7 @@ git commit -m "feat(pose_detector): add posture analysis methods"
 
 **Files:**
 - Modify: `tests/lib/test_pose_detector.py`
-- Modify: `visionkit/lib/pose_detector.py`
+- Modify: `openvisionkit/lib/pose_detector.py`
 
 - [ ] **Step 1: Append failing tests**
 
@@ -1285,7 +1285,7 @@ uv run pytest tests/lib/test_pose_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/pose_detector.py tests/lib/test_pose_detector.py
+git add openvisionkit/lib/pose_detector.py tests/lib/test_pose_detector.py
 git commit -m "feat(pose_detector): add action and spatial detection methods"
 ```
 
@@ -1297,7 +1297,7 @@ git commit -m "feat(pose_detector): add action and spatial detection methods"
 
 **Files:**
 - Create: `tests/lib/test_object_detector.py`
-- Modify: `visionkit/lib/object_detector.py`
+- Modify: `openvisionkit/lib/object_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1309,7 +1309,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import json
 import pytest
-from visionkit.lib.object_detector import ObjectDetector
+from openvisionkit.lib.object_detector import ObjectDetector
 from conftest import blank_bgr, MockDetection, MockObjectResult
 
 
@@ -1483,7 +1483,7 @@ uv run pytest tests/lib/test_object_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/object_detector.py tests/lib/test_object_detector.py
+git add openvisionkit/lib/object_detector.py tests/lib/test_object_detector.py
 git commit -m "feat(object_detector): add filtering, spatial, and export utilities"
 ```
 
@@ -1495,7 +1495,7 @@ git commit -m "feat(object_detector): add filtering, spatial, and export utiliti
 
 **Files:**
 - Create: `tests/lib/test_selfie_segmentation.py`
-- Modify: `visionkit/lib/selfie_segmentation.py`
+- Modify: `openvisionkit/lib/selfie_segmentation.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1508,7 +1508,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
 import pytest
 from unittest.mock import patch
-from visionkit.lib.selfie_segmentation import SelfieSegmentation
+from openvisionkit.lib.selfie_segmentation import SelfieSegmentation
 from conftest import blank_bgr
 
 
@@ -1674,7 +1674,7 @@ uv run pytest tests/lib/test_selfie_segmentation.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/selfie_segmentation.py tests/lib/test_selfie_segmentation.py
+git add openvisionkit/lib/selfie_segmentation.py tests/lib/test_selfie_segmentation.py
 git commit -m "feat(selfie_segmentation): add presence, bounds, and visual effects"
 ```
 
@@ -1686,7 +1686,7 @@ git commit -m "feat(selfie_segmentation): add presence, bounds, and visual effec
 
 **Files:**
 - Create: `tests/lib/test_hair_segmentation.py`
-- Modify: `visionkit/lib/hair_segmentation.py`
+- Modify: `openvisionkit/lib/hair_segmentation.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1698,7 +1698,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
 import pytest
-from visionkit.lib.hair_segmentation import HairSegmentation
+from openvisionkit.lib.hair_segmentation import HairSegmentation
 from conftest import blank_bgr
 
 
@@ -1856,7 +1856,7 @@ uv run pytest tests/lib/test_hair_segmentation.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/hair_segmentation.py tests/lib/test_hair_segmentation.py
+git add openvisionkit/lib/hair_segmentation.py tests/lib/test_hair_segmentation.py
 git commit -m "feat(hair_segmentation): add analysis and color effect methods"
 ```
 
@@ -1868,7 +1868,7 @@ git commit -m "feat(hair_segmentation): add analysis and color effect methods"
 
 **Files:**
 - Create: `tests/lib/test_image_detector.py`
-- Modify: `visionkit/lib/image_detector.py`
+- Modify: `openvisionkit/lib/image_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1880,7 +1880,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 import base64
 import numpy as np
 import pytest
-from visionkit.lib.image_detector import ImageDetector
+from openvisionkit.lib.image_detector import ImageDetector
 
 
 def det(h=300, w=400):
@@ -2039,7 +2039,7 @@ uv run pytest tests/lib/test_image_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/image_detector.py tests/lib/test_image_detector.py
+git add openvisionkit/lib/image_detector.py tests/lib/test_image_detector.py
 git commit -m "feat(image_detector): add preprocessing and analysis utilities"
 ```
 
@@ -2051,7 +2051,7 @@ git commit -m "feat(image_detector): add preprocessing and analysis utilities"
 
 **Files:**
 - Create: `tests/lib/test_text_detector.py`
-- Modify: `visionkit/lib/text_detector.py`
+- Modify: `openvisionkit/lib/text_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -2062,7 +2062,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 import pytest
-from visionkit.lib.text_detector import TextDetector
+from openvisionkit.lib.text_detector import TextDetector
 
 
 def det(text="Hello world"):
@@ -2240,7 +2240,7 @@ uv run pytest tests/lib/test_text_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/text_detector.py tests/lib/test_text_detector.py
+git add openvisionkit/lib/text_detector.py tests/lib/test_text_detector.py
 git commit -m "feat(text_detector): add extraction and analysis utilities"
 ```
 
@@ -2254,7 +2254,7 @@ git commit -m "feat(text_detector): add extraction and analysis utilities"
 
 **Files:**
 - Create: `tests/lib/test_form_roi_detector.py`
-- Modify: `visionkit/lib/form_roi_detector.py`
+- Modify: `openvisionkit/lib/form_roi_detector.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -2265,7 +2265,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 import pytest
-from visionkit.lib.form_roi_detector import FormROIDetector, ROIRegion
+from openvisionkit.lib.form_roi_detector import FormROIDetector, ROIRegion
 
 
 def det():
@@ -2363,7 +2363,7 @@ def test_extract_all_text_returns_dict(monkeypatch):
 uv run pytest tests/lib/test_form_roi_detector.py -v 2>&1 | tail -15
 ```
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/form_roi_detector.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/form_roi_detector.py`**
 
 ```python
     def get_empty_fields(self, regions):
@@ -2421,7 +2421,7 @@ uv run pytest tests/lib/test_form_roi_detector.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/form_roi_detector.py tests/lib/test_form_roi_detector.py
+git add openvisionkit/lib/form_roi_detector.py tests/lib/test_form_roi_detector.py
 git commit -m "feat(form_roi_detector): add field analysis utilities"
 ```
 
@@ -2435,7 +2435,7 @@ git commit -m "feat(form_roi_detector): add field analysis utilities"
 
 **Files:**
 - Create: `tests/lib/test_form_roi_annotator.py`
-- Modify: `visionkit/lib/form_roi_annotator.py`
+- Modify: `openvisionkit/lib/form_roi_annotator.py`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -2447,7 +2447,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 import json
 import numpy as np
 import pytest
-from visionkit.lib.form_roi_annotator import FormROIAnnotator
+from openvisionkit.lib.form_roi_annotator import FormROIAnnotator
 
 
 def ann(x1=10, y1=10, x2=60, y2=40, typ="checkbox", label="opt1", cat="form"):
@@ -2516,7 +2516,7 @@ def test_draw_annotation_summary_returns_image():
 uv run pytest tests/lib/test_form_roi_annotator.py -v 2>&1 | tail -15
 ```
 
-- [ ] **Step 3: Implement methods in `visionkit/lib/form_roi_annotator.py`**
+- [ ] **Step 3: Implement methods in `openvisionkit/lib/form_roi_annotator.py`**
 
 ```python
     def get_annotations_by_type(self, annotations, field_type):
@@ -2579,7 +2579,7 @@ uv run pytest tests/lib/test_form_roi_annotator.py -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add visionkit/lib/form_roi_annotator.py tests/lib/test_form_roi_annotator.py
+git add openvisionkit/lib/form_roi_annotator.py tests/lib/test_form_roi_annotator.py
 git commit -m "feat(form_roi_annotator): add annotation utility methods"
 ```
 

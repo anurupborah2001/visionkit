@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from conftest import blank_bgr, make_blend, make_face_478
 
-from visionkit.lib.face_mesh_detector import FaceMeshDetector
+from openvisionkit.lib.face_mesh_detector import FaceMeshDetector
 
 
 def det():

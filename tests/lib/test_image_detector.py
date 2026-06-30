@@ -7,7 +7,7 @@ import base64
 
 import numpy as np
 
-from visionkit.lib.image_detector import ImageDetector
+from openvisionkit.lib.image_detector import ImageDetector
 
 
 def det(h=300, w=400):

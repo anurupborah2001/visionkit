@@ -1,5 +1,5 @@
 def main():
-    print("Hello from visionkit!")
+    print("Hello from openvisionkit!")
 
 
 if __name__ == "__main__":

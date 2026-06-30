@@ -7,7 +7,7 @@ import json
 
 import numpy as np
 
-from visionkit.lib.form_roi_annotator import FormROIAnnotator
+from openvisionkit.lib.form_roi_annotator import FormROIAnnotator
 
 
 def ann(x1=10, y1=10, x2=60, y2=40, typ="checkbox", label="opt1", cat="form"):

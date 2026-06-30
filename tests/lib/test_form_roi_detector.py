@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 
-from visionkit.lib.form_roi_detector import FormROIDetector, ROIRegion
+from openvisionkit.lib.form_roi_detector import FormROIDetector, ROIRegion
 
 
 def det():

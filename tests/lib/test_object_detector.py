@@ -8,7 +8,7 @@ import json
 
 from conftest import MockDetection, MockObjectResult, blank_bgr
 
-from visionkit.lib.object_detector import ObjectDetector
+from openvisionkit.lib.object_detector import ObjectDetector
 
 
 def det():

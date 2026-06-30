@@ -7,8 +7,8 @@ from pathlib import Path
 
 import cv2
 
-from visionkit.capture.video_recorder import VideoRecorder
-from visionkit.lib.fps_counter import FPSCounter
+from openvisionkit.capture.video_recorder import VideoRecorder
+from openvisionkit.lib.fps_counter import FPSCounter
 
 with contextlib.suppress(Exception):
     ctypes.windll.user32.SetProcessDPIAware()

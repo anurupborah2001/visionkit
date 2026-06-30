@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import numpy as np
 from conftest import blank_bgr
 
-from visionkit.lib.selfie_segmentation import SelfieSegmentation
+from openvisionkit.lib.selfie_segmentation import SelfieSegmentation
 
 
 def det():

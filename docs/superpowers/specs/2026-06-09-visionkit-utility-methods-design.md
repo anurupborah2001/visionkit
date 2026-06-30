@@ -1,7 +1,7 @@
-# VisionKit Utility Methods — Design Spec
+# OpenVisionKit Utility Methods — Design Spec
 **Date:** 2026-06-09
 **Approach:** In-place additions to existing class files (Approach A)
-**Scope:** 11 classes across `visionkit/lib/`
+**Scope:** 11 classes across `openvisionkit/lib/`
 
 ---
 
@@ -23,7 +23,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## FaceDetector (`visionkit/lib/face_detector.py`)
+## FaceDetector (`openvisionkit/lib/face_detector.py`)
 
 ### New Methods
 
@@ -39,7 +39,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## FaceMeshDetector (`visionkit/lib/face_mesh_detector.py`)
+## FaceMeshDetector (`openvisionkit/lib/face_mesh_detector.py`)
 
 ### New Methods
 
@@ -59,7 +59,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## HandDetector (`visionkit/lib/hand_detector.py`)
+## HandDetector (`openvisionkit/lib/hand_detector.py`)
 
 ### New Methods
 
@@ -77,7 +77,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## PoseDetector (`visionkit/lib/pose_detector.py`)
+## PoseDetector (`openvisionkit/lib/pose_detector.py`)
 
 ### New Methods
 
@@ -96,7 +96,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## ObjectDetector (`visionkit/lib/object_detector.py`)
+## ObjectDetector (`openvisionkit/lib/object_detector.py`)
 
 ### New Methods
 
@@ -113,7 +113,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## SelfieSegmentation (`visionkit/lib/selfie_segmentation.py`)
+## SelfieSegmentation (`openvisionkit/lib/selfie_segmentation.py`)
 
 ### New Methods
 
@@ -130,7 +130,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## HairSegmentation (`visionkit/lib/hair_segmentation.py`)
+## HairSegmentation (`openvisionkit/lib/hair_segmentation.py`)
 
 ### New Methods
 
@@ -145,7 +145,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## ImageDetector (`visionkit/lib/image_detector.py`)
+## ImageDetector (`openvisionkit/lib/image_detector.py`)
 
 ### New Methods
 
@@ -163,7 +163,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## TextDetector (`visionkit/lib/text_detector.py`)
+## TextDetector (`openvisionkit/lib/text_detector.py`)
 
 ### New Methods
 
@@ -180,7 +180,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## FormROIDetector (`visionkit/lib/form_roi_detector.py`)
+## FormROIDetector (`openvisionkit/lib/form_roi_detector.py`)
 
 ### New Methods
 
@@ -195,7 +195,7 @@ All new methods are added directly to existing class files. No new files, no mix
 
 ---
 
-## FormROIAnnotator (`visionkit/lib/form_roi_annotator.py`)
+## FormROIAnnotator (`openvisionkit/lib/form_roi_annotator.py`)
 
 ### New Methods
 
