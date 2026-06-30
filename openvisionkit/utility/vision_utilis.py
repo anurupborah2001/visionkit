@@ -853,7 +853,7 @@ def overlay_frame(
 
 
 def auto_layout(drawings, frame_shape, cols=4, padding=20):
-    frame_h, frame_w = frame_shape[:2]
+    _ = frame_shape[:2]
 
     max_w = max(d.size[0] for d in drawings)
     max_h = max(d.size[1] for d in drawings)

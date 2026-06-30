@@ -69,7 +69,6 @@ class SelfieSegmentation:
     # Blur background
     def blur_background(self, image: np.ndarray, blur_strength=(55, 55)) -> np.ndarray:
         result = self.process(image)
-        category_mask = result.category_mask.numpy_view()
         blurred = cv2.GaussianBlur(image, blur_strength, 0)
         category_mask = np.squeeze(result.category_mask.numpy_view())
         condition = (category_mask > 0.5)[..., None]
@@ -79,7 +78,6 @@ class SelfieSegmentation:
     # Replace background
     def replace_background(self, image: np.ndarray, background_path: str) -> np.ndarray:
         result = self.process(image)
-        category_mask = result.category_mask.numpy_view()
         bg = cv2.imread(background_path)
         bg = cv2.resize(bg, (image.shape[1], image.shape[0]))
         category_mask = np.squeeze(result.category_mask.numpy_view())

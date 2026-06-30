@@ -4,6 +4,7 @@ Works well with TensorFlow 2.15 / 2.16 on Apple Silicon
 """
 
 import os
+import sys
 
 import cv2
 import numpy as np
@@ -163,7 +164,7 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Camera not opened. Try changing to cv2.VideoCapture(1)")
-        exit()
+        sys.exit(1)
 
     print("Press 'q' to quit")
 

@@ -363,7 +363,7 @@ class HandDetector:
             p1 = (lm1.x, lm1.y)
             p2 = (lm2.x, lm2.y)
 
-        distance = math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+        distance = math.hypot(p1[0] - p2[0], p1[1] - p2[1])
 
         if return_points:
             return distance, p1, p2
@@ -461,6 +461,7 @@ class HandDetector:
         # return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2) ** 0.5
         return float(np.linalg.norm(np.array(p1) - np.array(p2)))
 
+    @staticmethod
     def compute_real_palm_width(pixel_width, distance_cm, focal_length_px):
         """
         Compute the real palm width in centimeters based on the detected palm width in pixels, the known distance from the camera to the hand, and the focal length of the camera in pixels.

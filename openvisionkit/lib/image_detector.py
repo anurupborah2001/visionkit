@@ -90,10 +90,6 @@ class ImageDetector:
             print("Feature detection failed → using SSIM fallback")
             return self.fallback_ssim(self.image, image2, form_name)
 
-        # Safety check
-        if descriptors1 is None or descriptors2 is None:
-            raise ValueError("Descriptors could not be computed")
-
         # Use KNN matcher instead of crossCheck
         bf = cv2.BFMatcher(cv2.NORM_HAMMING)
 
@@ -188,10 +184,6 @@ class ImageDetector:
         if descriptors1 is None or descriptors2 is None:
             print("Feature detection failed → using SSIM fallback")
             return self.fallback_ssim(self.image, image2, form_name)
-
-        # Safety check
-        if descriptors1 is None or descriptors2 is None:
-            raise ValueError("Descriptors could not be computed")
 
         # Use KNN matcher instead of crossCheck
         bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -425,37 +417,6 @@ class ImageDetector:
             (20, 200, 250),  # orange
         ]
         return filtered + predefined
-
-    # def get_dominant_hsv_colors(self, k=4):
-    #   """
-    #   auto-detect highlight colors in the image by clustering pixel colors in HSV space using K-means.
-    #   Get dominant HSV colors from the image using K-means clustering.
-
-    #   Args:
-    #       k: Number of dominant colors to detect (default is 4)
-
-    #   Returns:
-    #       List of dominant HSV color tuples (h, s, v) detected in the image.
-    #   Usage:
-
-    #   """
-    #   mg_blur = cv2.GaussianBlur(self.image, (5,5), 0)
-    #   hsv = cv2.cvtColor(mg_blur, cv2.COLOR_BGR2HSV)
-    #   pixels = hsv.reshape(-1, 3).astype(np.float32)
-
-    #   _, labels, centers = cv2.kmeans(
-    #       pixels, k, None,
-    #       (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2),
-    #       10,
-    #       cv2.KMEANS_RANDOM_CENTERS
-    #   )
-    #   # Filter likely highlight colors
-    #   highlight_colors = []
-    #   for (h, s, v) in centers:
-    #       if s > 80 and v > 150:   # high saturation + brightness
-    #           highlight_colors.append((int(h), int(s), int(v)))
-
-    #   return highlight_colors
 
     def detect_single_highlighted_text(self, image, hsv_colors=None):
         """Detect highlighted text based on a single HSV color.
@@ -747,6 +708,7 @@ class ImageDetector:
         contours = sorted(contours, key=cv2.contourArea, reverse=True)
         return contours
 
+    @staticmethod
     def export_measurements(data, path="measurements.json"):
         with open(path, "w") as f:
             json.dump(data, f, indent=2)

@@ -1,3 +1,4 @@
+import warnings
 from typing import Any
 
 import cv2
@@ -69,8 +70,9 @@ try:
 
     NLP = spacy.load("en_core_web_sm")
 except Exception as e:
-    print(
-        f"[WARNING] spaCy not found or failed to load. Entity extraction will be unavailable. Error: {e}"
+    warnings.warn(
+        f"spaCy not found or failed to load. Entity extraction will be unavailable. Error: {e}",
+        stacklevel=1,
     )
     NLP = None
 
@@ -195,7 +197,7 @@ class TextDetector:
 
         bounding_boxes = pytesseract.image_to_boxes(self.image, config=self.config)
 
-        h_img, w_img = self.original_image.shape[:2]
+        _ = self.original_image.shape[:2]
 
         # 3. DRAWING
         for line in bounding_boxes.splitlines():
@@ -580,6 +582,7 @@ class TextDetector:
 
         return None
 
+    @staticmethod
     def fallback_ssim(image1, image2, form_name, draw_frame=False):
         image2_resized = cv2.resize(image2, (image1.shape[1], image1.shape[0]))
 
@@ -625,10 +628,6 @@ class TextDetector:
         if descriptors1 is None or descriptors2 is None:
             print("Feature detection failed → using SSIM fallback")
             return self.fallback_ssim(self.image, image2, form_name)
-
-        # Safety check
-        if descriptors1 is None or descriptors2 is None:
-            raise ValueError("Descriptors could not be computed")
 
         # Use KNN matcher instead of crossCheck
         bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -724,10 +723,6 @@ class TextDetector:
         if descriptors1 is None or descriptors2 is None:
             print("Feature detection failed → using SSIM fallback")
             return self.fallback_ssim(self.image, image2, form_name)
-
-        # Safety check
-        if descriptors1 is None or descriptors2 is None:
-            raise ValueError("Descriptors could not be computed")
 
         # Use KNN matcher instead of crossCheck
         bf = cv2.BFMatcher(cv2.NORM_HAMMING)

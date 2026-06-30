@@ -513,8 +513,6 @@ class FaceMeshDetector:
                 2,
             )
 
-            return length, (x1, y1, x2, y2, cx, cy), img
-
         return length, (x1, y1, x2, y2, cx, cy)
 
     def get_head_pose_angles(self, matrix):
