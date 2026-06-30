@@ -1216,9 +1216,6 @@ class TextDetector:
                 return "unknown"
             return detect(text)
         except ImportError:
-            import warnings
-
-            warnings.warn("langdetect not installed; returning 'unknown'", stacklevel=2)
             return "unknown"
         except Exception:
             return "unknown"
