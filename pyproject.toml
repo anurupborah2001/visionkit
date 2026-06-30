@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openvisionkit"
-version = "0.3.0"
+version = "0.4.0"
 description = "MediaPipe Tasks API wrapper for Python computer vision"
 readme = "README.md"
 license = { text = "MIT" }
@@ -61,7 +61,7 @@ packages = ["openvisionkit"]
 # ── Commitizen ─────────────────────────────────────────────────────────────────
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.3.0"
+version = "0.4.0"
 version_scheme = "semver"
 version_provider = "commitizen"
 tag_format = "v$version"
