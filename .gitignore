@@ -11,3 +11,6 @@ wheels/
 
 # docs/_build/
 .memsearch
+
+## remove the docs
+docs/**
